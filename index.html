@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>分镜生成器</title>
+    <script>
+      /* 启动期错误直接画在页面上，避免「点了没反应」式静默失败 */
+      window.__sbShowError = function (msg) {
+        var b = document.getElementById("boot-errors");
+        if (!b) {
+          b = document.createElement("div");
+          b.id = "boot-errors";
+          b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:#7a1f1f;color:#fff;font:12px/1.5 monospace;padding:8px 12px;white-space:pre-wrap;max-height:45vh;overflow:auto";
+          (document.body || document.documentElement).appendChild(b);
+        }
+        b.textContent += msg + "\n";
+      };
+      window.addEventListener("error", function (e) {
+        window.__sbShowError("错误: " + (e.message || e.type) + "  @ " + (e.filename || "") + ":" + (e.lineno || ""));
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        var r = e.reason;
+        window.__sbShowError("Promise: " + ((r && r.stack) || (r && r.message) || r));
+      });
+    </script>
   </head>
   <body>
     <div id="app">
