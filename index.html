@@ -49,8 +49,14 @@
       </aside>
 
       <footer id="desc-bar">
-        <textarea id="shot-desc" disabled placeholder="本镜描述：画面内容、情绪、构图意图（P2 可编辑）"></textarea>
-        <textarea id="shot-notes" disabled placeholder="备注：灯光 / 服装 / 道具 / 台词（P2 可编辑）"></textarea>
+        <div class="desc-left">
+          <div class="desc-row">
+            <input id="shot-name" placeholder="镜头名" />
+            <label>时长 <input id="shot-duration" type="number" min="0.5" step="0.5" style="width:52px" /> s</label>
+          </div>
+          <textarea id="shot-desc" placeholder="本镜描述：画面内容、情绪、前景/背景、构图意图"></textarea>
+        </div>
+        <textarea id="shot-notes" placeholder="备注：灯光 / 服装 / 道具 / 台词"></textarea>
       </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>

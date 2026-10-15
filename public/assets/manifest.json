@@ -4,5 +4,21 @@
     { "id": "woman", "name": "女", "type": "procedural", "build": "female", "height": 1.65 },
     { "id": "child", "name": "儿童", "type": "procedural", "build": "child", "height": 1.20 }
   ],
-  "props": []
+  "props": [
+    { "id": "chair", "name": "椅子", "type": "procedural", "shape": "chair" },
+    { "id": "stool", "name": "凳子", "type": "procedural", "shape": "stool" },
+    { "id": "table", "name": "桌子", "type": "procedural", "shape": "table" },
+    { "id": "sofa", "name": "沙发", "type": "procedural", "shape": "sofa" },
+    { "id": "bed", "name": "床", "type": "procedural", "shape": "bed" },
+    { "id": "box", "name": "箱子", "type": "procedural", "shape": "box", "sizeable": true },
+    { "id": "wall", "name": "墙", "type": "procedural", "shape": "wall", "sizeable": true },
+    { "id": "backdrop", "name": "背景纸", "type": "procedural", "shape": "backdrop", "sizeable": true },
+    { "id": "door", "name": "门框", "type": "procedural", "shape": "door" },
+    { "id": "window", "name": "窗框", "type": "procedural", "shape": "window" },
+    { "id": "stairs", "name": "台阶", "type": "procedural", "shape": "stairs" },
+    { "id": "tree", "name": "树", "type": "procedural", "shape": "tree" },
+    { "id": "car", "name": "汽车", "type": "procedural", "shape": "car" },
+    { "id": "umbrella", "name": "伞", "type": "procedural", "shape": "umbrella" },
+    { "id": "light_stand", "name": "灯架", "type": "procedural", "shape": "light_stand" }
+  ]
 }
