@@ -9,6 +9,8 @@ import { initInspector, type PanelCtx } from "./ui/Inspector";
 import { initDescBar } from "./ui/DescBar";
 import { initKeyboard } from "./ui/keyboard";
 import { Viewport } from "./ui/viewport";
+import { exportShotPNG, exportContactSheet } from "./export/png";
+import { exportLightMap } from "./export/lightmap";
 import "./style.css";
 
 async function main(): Promise<void> {
@@ -45,9 +47,14 @@ async function main(): Promise<void> {
   const sm = new SceneManager(scene);
   const viewport = new Viewport(scene, store, sm, () => scheduleRefreshThumbs());
 
-  const toolbar = initToolbar(store, { toggleOverlay: () => viewport.toggleOverlay() });
-  document.getElementById("shadows")?.addEventListener("change", (e) => {
-    viewport.setShadows((e.target as HTMLInputElement).checked);
+  const toolbar = initToolbar(store, {
+    toggleOverlay: () => viewport.toggleOverlay(),
+    exportPng: (withOverlay) => void exportShotPNG(store, sm, scene, withOverlay),
+    exportSheet: () => void exportContactSheet(store, sm, scene),
+    exportLightMap: () => exportLightMap(store),
+  });
+  window.addEventListener("storyboard:shadows", (e) => {
+    viewport.setShadows((e as CustomEvent<boolean>).detail);
   });
   const thumbs = initShotList(store, sm, scene, () => viewport.requestRender());
   const descBar = initDescBar(store);

@@ -1,28 +1,71 @@
-// P2/P3：工具栏。新建 / 撤销 / 重做 / 画幅 / 传感器。文件与导出在 P5，阴影在 P4。
+// P5：工具栏全量接线（新建/打开/保存/导入/提示词/撤销/重做/导出/画幅/阴影）。
 import type { Aspect, Sensor } from "../types";
 import { ASPECTS, SENSORS } from "../types";
 import type { Store } from "../state/store";
 import { newProject } from "../state/store";
+import { openProjectFile, saveProjectFile, copyText } from "../export/files";
+import { buildAiPrompt, buildAiRevisePrompt } from "../ai/prompt";
+import { showImportModal } from "./modals";
+import { normalizeProject } from "../state/normalize";
+import { getManifest } from "../scene/assets";
 
-export function initToolbar(store: Store, hooks: { toggleOverlay?: () => void } = {}): { update: () => void } {
+export interface ToolbarHooks {
+  toggleOverlay?: () => void;
+  exportPng?: (withOverlay: boolean) => void;
+  exportSheet?: () => void;
+  exportLightMap?: () => void;
+}
+
+export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => void } {
   const $ = (id: string): HTMLButtonElement => document.getElementById(id) as HTMLButtonElement;
-
-  $("btn-new").disabled = false;
-  $("btn-undo").disabled = false;
-  $("btn-redo").disabled = false;
-  const shadowsCb = document.getElementById("shadows") as HTMLInputElement;
-  shadowsCb.disabled = false;
+  for (const id of ["btn-new", "btn-open", "btn-save", "btn-import", "btn-prompt", "btn-undo", "btn-redo", "btn-png", "btn-sheet", "btn-lightmap"]) {
+    $(id).disabled = false;
+  }
 
   $("btn-new").addEventListener("click", () => {
     if (!window.confirm("新建项目？当前项目会保留在撤销历史里（Ctrl+Z 可退回）。")) return;
     store.replaceProject(newProject());
   });
+  $("btn-open").addEventListener("click", () => {
+    openProjectFile()
+      .then((raw) => {
+        const models = {
+          characters: getManifest().characters.map((c) => c.id),
+          props: getManifest().props.map((p) => p.id),
+        };
+        const { project, warnings } = normalizeProject(raw, models);
+        if (warnings.length > 0 && !window.confirm(`文件有 ${warnings.length} 处已自动修正：\n${warnings.slice(0, 8).join("\n")}\n\n继续打开？`)) {
+          return;
+        }
+        store.replaceProject(project);
+      })
+      .catch((err: Error) => window.alert(err.message));
+  });
+  $("btn-save").addEventListener("click", () => saveProjectFile(store.project));
+  $("btn-import").addEventListener("click", () => showImportModal(store));
+  $("btn-prompt").addEventListener("click", (e) => {
+    // 普通点击 = 复制提示词；Shift+点击 = 复制「当前项目给 AI 修改」
+    if ((e as MouseEvent).shiftKey) {
+      const request = window.prompt("要让 AI 怎么改？", "") ?? "";
+      void copyText(buildAiRevisePrompt(store.project, request)).then((ok) =>
+        flash($("btn-prompt"), ok ? "已复制 ✓" : "复制失败"),
+      );
+    } else {
+      void copyText(buildAiPrompt()).then((ok) =>
+        flash($("btn-prompt"), ok ? "已复制 ✓" : "复制失败"),
+      );
+    }
+  });
   $("btn-undo").addEventListener("click", () => store.undo());
   $("btn-redo").addEventListener("click", () => store.redo());
+  $("btn-png").addEventListener("click", (e) => {
+    hooks.exportPng?.(!(e as MouseEvent).shiftKey); // Shift = 不带辅助线
+  });
+  $("btn-sheet").addEventListener("click", () => hooks.exportSheet?.());
+  $("btn-lightmap").addEventListener("click", () => hooks.exportLightMap?.());
 
-  // 画幅（项目级，P3）
+  // 画幅 / 传感器
   const aspectSel = document.getElementById("aspect") as HTMLSelectElement;
-  aspectSel.disabled = false;
   aspectSel.innerHTML = "";
   for (const a of ASPECTS) {
     const opt = document.createElement("option");
@@ -35,8 +78,6 @@ export function initToolbar(store: Store, hooks: { toggleOverlay?: () => void } 
       p.aspect = aspectSel.value as Aspect;
     });
   });
-
-  // 传感器（只影响 HUD 显示实际焦段）
   const sensorSel = document.getElementById("sensor") as HTMLSelectElement;
   sensorSel.innerHTML = "";
   for (const s of SENSORS) {
@@ -51,13 +92,24 @@ export function initToolbar(store: Store, hooks: { toggleOverlay?: () => void } 
     });
   });
 
-  // 三分线开关（P3）
-  const overlayBtn = document.getElementById("btn-overlay");
-  overlayBtn?.addEventListener("click", () => hooks.toggleOverlay?.());
+  document.getElementById("btn-overlay")?.addEventListener("click", () => hooks.toggleOverlay?.());
+
+  const shadowsCb = document.getElementById("shadows") as HTMLInputElement;
+  shadowsCb.addEventListener("change", () => {
+    window.dispatchEvent(new CustomEvent("storyboard:shadows", { detail: shadowsCb.checked }));
+  });
+
+  function flash(btn: HTMLButtonElement, text: string): void {
+    const orig = btn.textContent;
+    btn.textContent = text;
+    setTimeout(() => {
+      btn.textContent = orig;
+    }, 1200);
+  }
 
   function update(): void {
-    ($("btn-undo") as HTMLButtonElement).disabled = !store.canUndo();
-    ($("btn-redo") as HTMLButtonElement).disabled = !store.canRedo();
+    $("btn-undo").disabled = !store.canUndo();
+    $("btn-redo").disabled = !store.canRedo();
     document.getElementById("proj-title")!.textContent = store.project.title;
     if (document.activeElement !== aspectSel) aspectSel.value = store.project.aspect;
     if (document.activeElement !== sensorSel) sensorSel.value = store.project.sensor;
