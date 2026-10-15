@@ -2,7 +2,8 @@
   "characters": [
     { "id": "man", "name": "男", "type": "procedural", "build": "male", "height": 1.78 },
     { "id": "woman", "name": "女", "type": "procedural", "build": "female", "height": 1.65 },
-    { "id": "child", "name": "儿童", "type": "procedural", "build": "child", "height": 1.20 }
+    { "id": "child", "name": "儿童", "type": "procedural", "build": "child", "height": 1.20 },
+    { "id": "xbot", "name": "X Bot", "type": "gltf", "file": "models/Xbot.glb", "height": 1.75, "rotateY": 0, "boneMap": "mixamo" }
   ],
   "props": [
     { "id": "chair", "name": "椅子", "type": "procedural", "shape": "chair" },

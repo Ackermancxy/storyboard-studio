@@ -8,7 +8,8 @@ import { applyGaze } from "./gaze";
 import { cameraHudText, solveCamera, type CameraSolve } from "./camera";
 import { buildMannequin, disposeMannequin, setRigColor, type Build } from "./mannequin";
 import { buildProp } from "./props";
-import { characterDef, propDef } from "./assets";
+import { characterDef, propDef, cloneGltf, loadGLTFTemplate } from "./assets";
+import { buildGltfRig, resolveBoneMap } from "./gltfRig";
 import { kelvinToRGB, lightGain, placeLight, ROLE_COLORS } from "./lights";
 import type { Selection } from "../state/store";
 
@@ -52,6 +53,7 @@ export class SceneManager {
   sync(project: Project, shotIndex: number): void {
     const shot = project.shots[shotIndex];
     if (!shot) return;
+    this.lastRebuild = () => this.sync(project, shotIndex);
     this.syncProps(shot);
     this.solveShotCamera(project, shot);
     this.syncActors(project, shot);
@@ -113,13 +115,13 @@ export class SceneManager {
         const group = new THREE.Group();
         group.name = `actor:${actor.id}`;
         group.userData.entity = { type: "actor", id: actor.id };
-        const rig = this.buildCharacterRig(actor.model, actor.color);
-        group.add(rig.root);
+        entry = { group, rig: null as unknown as Rig, modelKey: actor.model, colorKey: "" };
+        entry.rig = this.buildCharacterRig(actor.model, actor.color, entry);
+        group.add(entry.rig.root);
         group.traverse((o) => {
           if ((o as THREE.Mesh).isMesh) o.castShadow = true;
         });
         this.scene.add(group);
-        entry = { group, rig, modelKey: actor.model, colorKey: "" };
         this.actors.set(actor.id, entry);
       }
       const colorKey = actor.color ?? def?.color ?? "";
@@ -155,8 +157,8 @@ export class SceneManager {
     }
   }
 
-  /** P2：程序化木头人；P6 在此扩展 GLTF */
-  private buildCharacterRig(model: string, color?: string): Rig {
+  /** P2：程序化木头人；P6：GLTF 异步加载（先占位盒，加载完自动替换） */
+  private buildCharacterRig(model: string, color: string | undefined, entry: ActorEntry): Rig {
     const def = characterDef(model);
     if (!def || def.type === "procedural") {
       return buildMannequin({
@@ -165,8 +167,47 @@ export class SceneManager {
         color: color ?? def?.color ?? "#c9a06b",
       });
     }
-    return placeholderRig(1.75, "#888888"); // GLTF 占位（P6 实现）
+    // GLTF：先给占位盒，模板加载好后构建真 Rig 并换入
+    const rig = placeholderRig(def.height ?? 1.75, "#555555");
+    this.placeholderRigs.set(model, rig);
+    const replace = (newRig: Rig | null): void => {
+      if (this.placeholderRigs.get(model) !== rig || entry.rig !== rig) return; // 已被切换/删除
+      this.placeholderRigs.delete(model);
+      if (newRig) {
+        const parent = rig.root.parent;
+        rig.root.removeFromParent();
+        disposeRigObjects(rig);
+        if (parent) parent.add(newRig.root);
+        entry.rig = newRig;
+      }
+      this.lastRebuild?.();
+    };
+    void loadGLTFTemplate(`assets/${def.file ?? ""}`)
+      .then((template) => {
+        replace(buildGltfRig(
+          cloneGltf(template),
+          def.height ?? 1.75,
+          def.rotateY ?? 0,
+          resolveBoneMap(def.boneMap ?? "mixamo"),
+        ));
+      })
+      .catch(() => {
+        // 失败：占位盒变红
+        rig.root.traverse((o) => {
+          const mesh = o as THREE.Mesh;
+          if (mesh.isMesh) (mesh.material as THREE.MeshStandardMaterial).color.set("#cc3333");
+        });
+        this.loadErrors.add(model);
+        replace(null);
+      });
+    return rig;
   }
+
+  private placeholderRigs = new Map<string, Rig>();
+  readonly loadErrors = new Set<string>();
+  lastRebuild: (() => void) | null = null;
+
+  /** P4：数据驱动灯光 + 灯位 gizmo */
 
   private syncProps(shot: Shot): void {
     const seen = new Set<string>();
@@ -414,6 +455,19 @@ function placeholderRig(height: number, color: string): Rig {
 
 function shadowsKey(spec: Shot["lights"][number]): string {
   return spec.showStand ? "stand" : "";
+}
+
+/** 释放任意 rig 的几何/材质（占位盒与 GLTF 换出时用） */
+function disposeRigObjects(rig: Rig): void {
+  rig.root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (mesh.isMesh) {
+      mesh.geometry.dispose();
+      const m = mesh.material as THREE.Material | THREE.Material[];
+      if (Array.isArray(m)) m.forEach((x) => x.dispose());
+      else m?.dispose();
+    }
+  });
 }
 
 /** 照射方向线：gizmo 无旋转，直接用位置差 */
