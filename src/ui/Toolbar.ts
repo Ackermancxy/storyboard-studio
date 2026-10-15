@@ -10,6 +10,8 @@ export function initToolbar(store: Store, hooks: { toggleOverlay?: () => void } 
   $("btn-new").disabled = false;
   $("btn-undo").disabled = false;
   $("btn-redo").disabled = false;
+  const shadowsCb = document.getElementById("shadows") as HTMLInputElement;
+  shadowsCb.disabled = false;
 
   $("btn-new").addEventListener("click", () => {
     if (!window.confirm("新建项目？当前项目会保留在撤销历史里（Ctrl+Z 可退回）。")) return;

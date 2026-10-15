@@ -7,6 +7,7 @@ import { characterDef, getManifest, propDef } from "../scene/assets";
 import { buildActorPanel } from "./panels/actorPanel";
 import { buildPropPanel } from "./panels/propPanel";
 import { buildCameraPanel } from "./panels/cameraPanel";
+import { buildLightPanel } from "./panels/lightPanel";
 
 export interface PanelCtx {
   store: Store;
@@ -74,6 +75,25 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
         store.selected = { type: "prop", id };
       });
     });
+    add("＋灯", () => {
+      store.transact((p) => {
+        const shot = p.shots[store.shotIndex];
+        const id = nextId(shot.lights, "L");
+        shot.lights.push({
+          id,
+          role: "key",
+          type: "soft",
+          subject: shot.actors[0]?.id,
+          azimuth: 45,
+          elevation: 35,
+          distance: 3,
+          intensity: 1,
+          colorTemp: 5600,
+          showStand: false,
+        });
+        store.selected = { type: "light", id };
+      });
+    });
     listEl.appendChild(bar);
   }
 
@@ -92,6 +112,7 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
     };
     shot.actors.forEach((a) => row(a.label ? `${a.label}（${a.id}）` : a.id, "actor", a.id));
     shot.props.forEach((pr) => row(propDef(pr.model)?.name ?? pr.model, "prop", pr.id));
+    shot.lights.forEach((l) => row(l.id, "light", l.id));
     row("相机", "camera", "camera");
     addRow();
   }
@@ -112,6 +133,9 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
       if (prop) buildPropPanel(gui, ctx2, prop);
     } else if (sel.type === "camera") {
       buildCameraPanel(gui, ctx2, store.shot);
+    } else if (sel.type === "light") {
+      const light = store.shot.lights.find((l) => l.id === sel.id);
+      if (light) buildLightPanel(gui, ctx2, light);
     }
   }
 

@@ -32,11 +32,23 @@ async function main(): Promise<void> {
   gridMajor.position.y = 0.002;
   scene.add(gridMinor, gridMajor);
 
+  // 阴影承接面（只显示阴影的透明平面）
+  const shadowCatcher = new THREE.Mesh(
+    new THREE.PlaneGeometry(40, 40),
+    new THREE.ShadowMaterial({ opacity: 0.32 }),
+  );
+  shadowCatcher.rotation.x = -Math.PI / 2;
+  shadowCatcher.receiveShadow = true;
+  scene.add(shadowCatcher);
+
   const store = new Store();
   const sm = new SceneManager(scene);
   const viewport = new Viewport(scene, store, sm, () => scheduleRefreshThumbs());
 
   const toolbar = initToolbar(store, { toggleOverlay: () => viewport.toggleOverlay() });
+  document.getElementById("shadows")?.addEventListener("change", (e) => {
+    viewport.setShadows((e.target as HTMLInputElement).checked);
+  });
   const thumbs = initShotList(store, sm, scene, () => viewport.requestRender());
   const descBar = initDescBar(store);
   const inspector = initInspector({

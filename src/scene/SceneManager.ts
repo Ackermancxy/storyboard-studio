@@ -9,6 +9,7 @@ import { cameraHudText, solveCamera, type CameraSolve } from "./camera";
 import { buildMannequin, disposeMannequin, setRigColor, type Build } from "./mannequin";
 import { buildProp } from "./props";
 import { characterDef, propDef } from "./assets";
+import { kelvinToRGB, lightGain, placeLight, ROLE_COLORS } from "./lights";
 import type { Selection } from "../state/store";
 
 interface ActorEntry {
@@ -21,6 +22,12 @@ interface PropEntry {
   group: THREE.Group;
   buildKey: string; // model+size+color，变了就重建
 }
+interface LightEntry {
+  light: THREE.Light;
+  target: THREE.Object3D;
+  gizmo: THREE.Group;
+  buildKey: string;
+}
 
 const HIGHLIGHT = 0x1e3f66;
 
@@ -32,10 +39,15 @@ export function aspectValue(aspect: Project["aspect"]): number {
 export class SceneManager {
   private actors = new Map<string, ActorEntry>();
   private props = new Map<string, PropEntry>();
+  private lights = new Map<string, LightEntry>();
+  readonly lightGizmos = new THREE.Group(); // 导演/俯视视图可见
+  shadowsOn = false;
   cameraState: CameraSolve | null = null;
   private hudSpec = "";
 
-  constructor(readonly scene: THREE.Scene) {}
+  constructor(readonly scene: THREE.Scene) {
+    this.scene.add(this.lightGizmos);
+  }
 
   sync(project: Project, shotIndex: number): void {
     const shot = project.shots[shotIndex];
@@ -43,6 +55,7 @@ export class SceneManager {
     this.syncProps(shot);
     this.solveShotCamera(project, shot);
     this.syncActors(project, shot);
+    this.syncLights(shot);
     this.applyHighlight();
   }
 
@@ -102,6 +115,9 @@ export class SceneManager {
         group.userData.entity = { type: "actor", id: actor.id };
         const rig = this.buildCharacterRig(actor.model, actor.color);
         group.add(rig.root);
+        group.traverse((o) => {
+          if ((o as THREE.Mesh).isMesh) o.castShadow = true;
+        });
         this.scene.add(group);
         entry = { group, rig, modelKey: actor.model, colorKey: "" };
         this.actors.set(actor.id, entry);
@@ -169,6 +185,12 @@ export class SceneManager {
           ? buildProp(def, prop)
           : buildProp({ id: "box", name: "box", type: "procedural", shape: "box" }, prop);
         group.userData.entity = { type: "prop", id: prop.id };
+        group.traverse((o) => {
+          if ((o as THREE.Mesh).isMesh) {
+            o.castShadow = true;
+            o.receiveShadow = true;
+          }
+        });
         this.scene.add(group);
         entry = { group, buildKey };
         this.props.set(prop.id, entry);
@@ -182,8 +204,128 @@ export class SceneManager {
     }
   }
 
-  private removeActor(id: string): void {
-    const entry = this.actors.get(id);
+  /** P4：数据驱动灯光 + 灯位 gizmo */
+  private syncLights(shot: Shot): void {
+    const seen = new Set<string>();
+    const defaultSubject = shot.actors[0];
+    for (const spec of shot.lights) {
+      seen.add(spec.id);
+      const subject =
+        shot.actors.find((a) => a.id === spec.subject) ?? defaultSubject;
+      const subPos: [number, number] = subject?.position ?? [0, 0];
+      const subFacing = subject?.facing ?? 0;
+      const subH = characterDef(subject?.model ?? "")?.height ?? 1.73;
+      const place = placeLight(
+        spec.azimuth, spec.elevation, spec.distance ?? 3, subPos, subFacing, subH,
+      );
+      const kelvin = spec.colorTemp ?? 5600;
+      const color = new THREE.Color(kelvinToRGB(kelvin).r, kelvinToRGB(kelvin).g, kelvinToRGB(kelvin).b);
+
+      const buildKey = `${spec.role}|${spec.type ?? "soft"}|${kelvin}|${spec.intensity}|${shadowsKey(spec)}`;
+      let entry = this.lights.get(spec.id);
+      if (entry && entry.buildKey !== buildKey) {
+        this.removeLight(spec.id);
+        entry = undefined;
+      }
+      if (!entry) {
+        let light: THREE.Light;
+        if (spec.role === "ambient") {
+          light = new THREE.HemisphereLight(color, 0x202028, lightGain(spec.intensity) * 0.5);
+        } else if (spec.role === "practical") {
+          light = new THREE.PointLight(color, lightGain(spec.intensity) * 4, 12, 2);
+        } else {
+          const dir = new THREE.DirectionalLight(color, lightGain(spec.intensity));
+          dir.castShadow = this.shadowsOn && spec.role === "key";
+          dir.shadow.mapSize.set(1024, 1024);
+          dir.shadow.camera.left = -5;
+          dir.shadow.camera.right = 5;
+          dir.shadow.camera.top = 5;
+          dir.shadow.camera.bottom = -5;
+          dir.shadow.camera.far = 30;
+          dir.shadow.bias = -0.0005;
+          dir.shadow.radius = spec.type === "soft" ? 8 : 1;
+          light = dir;
+        }
+        const target = new THREE.Object3D();
+        target.position.copy(place.aim);
+        this.scene.add(target);
+        if (light instanceof THREE.DirectionalLight) light.target = target;
+        this.scene.add(light);
+
+        const gizmo = this.buildLightGizmo(spec.id, spec.role);
+        this.lightGizmos.add(gizmo);
+        entry = { light, target, gizmo, buildKey };
+        this.lights.set(spec.id, entry);
+      }
+      entry.light.position.copy(place.position);
+      entry.light.intensity = lightGain(spec.intensity) *
+        (spec.role === "practical" ? 4 : spec.role === "ambient" ? 0.5 : 1);
+      if (entry.light instanceof THREE.DirectionalLight) {
+        entry.light.target.position.copy(place.aim);
+      }
+      entry.target.position.copy(place.aim);
+      entry.gizmo.position.copy(place.position);
+      updateGizmoLine(entry.gizmo, place.aim);
+    }
+    for (const id of [...this.lights.keys()]) {
+      if (!seen.has(id)) this.removeLight(id);
+    }
+  }
+
+  private buildLightGizmo(id: string, role: string): THREE.Group {
+    const g = new THREE.Group();
+    g.name = `light:${id}`;
+    g.userData.entity = { type: "light", id };
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.07, 12, 10),
+      new THREE.MeshBasicMaterial({ color: ROLE_COLORS[role as keyof typeof ROLE_COLORS] ?? 0xffffff }),
+    );
+    dot.name = "dot";
+    g.add(dot);
+    const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+    const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x8a8a9a }));
+    line.name = "aimline";
+    g.add(line);
+    const label = makeTextSprite(id);
+    label.position.y = 0.16;
+    g.add(label);
+    return g;
+  }
+
+  private removeLight(id: string): void {
+    const entry = this.lights.get(id);
+    if (!entry) return;
+    this.scene.remove(entry.light);
+    this.scene.remove(entry.target);
+    this.lightGizmos.remove(entry.gizmo);
+    entry.gizmo.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (mesh.isMesh) mesh.geometry.dispose();
+    });
+    this.lights.delete(id);
+  }
+
+  setGizmosVisible(v: boolean): void {
+    this.lightGizmos.visible = v;
+  }
+
+  setShadows(on: boolean): void {
+    this.shadowsOn = on;
+    for (const entry of this.lights.values()) {
+      if (entry.light instanceof THREE.DirectionalLight) {
+        entry.light.castShadow = on && entry.buildKey.startsWith("key");
+      }
+    }
+    this.scene.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (mesh.isMesh) {
+        const m = mesh.material as THREE.Material;
+        if (m) m.needsUpdate = true;
+      }
+    });
+  }
+
+  private removeActor(id: string): void {    const entry = this.actors.get(id);
     if (!entry) return;
     this.scene.remove(entry.group);
     disposeMannequin(entry.rig);
@@ -268,4 +410,38 @@ function placeholderRig(height: number, color: string): Rig {
     hipHeight: height * 0.53,
     markers: new Map(),
   };
+}
+
+function shadowsKey(spec: Shot["lights"][number]): string {
+  return spec.showStand ? "stand" : "";
+}
+
+/** 照射方向线：gizmo 无旋转，直接用位置差 */
+function updateGizmoLine(gizmo: THREE.Group, aimWorld: THREE.Vector3): void {
+  const line = gizmo.getObjectByName("aimline") as THREE.Line | undefined;
+  if (!line) return;
+  const local = aimWorld.clone().sub(gizmo.position);
+  const pos = line.geometry.getAttribute("position") as THREE.BufferAttribute;
+  pos.setXYZ(1, local.x, local.y, local.z);
+  pos.needsUpdate = true;
+}
+
+function makeTextSprite(text: string): THREE.Sprite {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "rgba(0,0,0,0.45)";
+  ctx.beginPath();
+  ctx.roundRect(14, 8, 100, 48, 10);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "28px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 64, 33);
+  const tex = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+  sprite.scale.set(0.42, 0.21, 1);
+  return sprite;
 }

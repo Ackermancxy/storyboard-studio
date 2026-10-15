@@ -144,10 +144,11 @@ export class Viewport {
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
 
-    // 相机 gizmo / 视锥只在导演和俯视视图显示
+    // 相机 gizmo / 视锥 / 灯位只在导演和俯视视图显示
     const showGizmos = this.mode !== "shot";
     this.camGizmo.visible = showGizmos;
     this.camHelper.visible = showGizmos;
+    this.sm.setGizmosVisible(showGizmos);
     this.tcontrols.enabled = this.mode === "director";
 
     // 相机 gizmo 跟随机位相机
@@ -233,6 +234,13 @@ export class Viewport {
   }
   toggleOverlay(): void {
     this.overlayVisible = !this.overlayVisible;
+    this.requestRender();
+  }
+
+  setShadows(on: boolean): void {
+    this.renderer.shadowMap.enabled = on;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.sm.setShadows(on);
     this.requestRender();
   }
 
