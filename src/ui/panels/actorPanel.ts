@@ -100,6 +100,8 @@ export function buildActorPanel(gui: GUI, ctx: PanelCtx, actor: Actor): void {
     invalidatePresetCache();
     ctx.rebuildPanel();
   } }, "save").name("💾 存当前为预设");
+  fp.add({ manage: () => void import("../modals").then((m) => m.showPresetManager()) }, "manage")
+    .name("⚙ 管理预设…");
 
   for (const [groupName, names] of JOINT_GROUPS) {
     const folder = gui.addFolder(groupName);

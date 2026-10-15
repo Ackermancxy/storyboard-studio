@@ -1,6 +1,7 @@
-// P2/P3：快捷键。Tab 切机位/导演、T 俯视、W/E 平移/旋转、Delete 删除、1–9 跳镜头。
+// P2/P3/P7：快捷键。Tab/T 视图、W/E 模式、Delete、1–9、Ctrl+D、? 帮助。
 import type { Store } from "../state/store";
 import { nextId } from "../state/store";
+import { showHelpModal } from "./modals";
 
 export function initKeyboard(
   store: Store,
@@ -35,6 +36,7 @@ export function initKeyboard(
       case "t": case "T": hooks.toggleTop(); break;
       case "w": case "W": hooks.setMode("translate"); break;
       case "e": case "E": hooks.setMode("rotate"); break;
+      case "?": case "/": showHelpModal(); break;
       case "Delete": case "Backspace": deleteSelected(store); break;
       default:
         if (/^[1-9]$/.test(e.key)) {
