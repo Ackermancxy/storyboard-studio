@@ -74,14 +74,23 @@ export function initShotList(
   sm: SceneManager,
   scene: THREE.Scene,
   requestRender: () => void,
-): ThumbService {
+): { thumbs: ThumbService; update: () => void } {
   currentStore = store;
   const root = document.getElementById("shot-items")!;
   const thumbs = new ThumbService(scene, sm, onThumb, requestRender);
+  let structKey = "";
 
   function onThumb(shotId: string, url: string): void {
     const img = root.querySelector<HTMLImageElement>(`img[data-shot="${shotId}"]`);
     if (img) img.src = url;
+  }
+
+  /** 结构（镜头集合/顺序/当前镜）变化才重建 DOM，滑杆拖动不重建 */
+  function update(): void {
+    const key = store.project.shots.map((s) => s.id).join() + "|" + store.shotIndex;
+    if (key === structKey) return;
+    structKey = key;
+    render();
   }
 
   function render(): void {
@@ -157,5 +166,5 @@ export function initShotList(
   document.getElementById("shot-list")!.appendChild(actions);
 
   render();
-  return thumbs;
+  return { thumbs, update };
 }

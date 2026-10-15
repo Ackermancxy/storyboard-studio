@@ -47,6 +47,9 @@ async function main(): Promise<void> {
   const sm = new SceneManager(scene);
   const viewport = new Viewport(scene, store, sm, () => scheduleRefreshThumbs());
 
+  const shotList = initShotList(store, sm, scene, () => viewport.requestRender());
+  const thumbs = shotList.thumbs;
+
   const toolbar = initToolbar(store, {
     toggleOverlay: () => viewport.toggleOverlay(),
     exportPng: (withOverlay) => void exportShotPNG(store, sm, scene, withOverlay),
@@ -56,7 +59,6 @@ async function main(): Promise<void> {
   window.addEventListener("storyboard:shadows", (e) => {
     viewport.setShadows((e as CustomEvent<boolean>).detail);
   });
-  const thumbs = initShotList(store, sm, scene, () => viewport.requestRender());
   const descBar = initDescBar(store);
   const inspector = initInspector({
     store,
@@ -82,6 +84,7 @@ async function main(): Promise<void> {
     sm.setSelected(store.selected);
     viewport.setSelection(store.selected);
     toolbar.update();
+    shotList.update();
     inspector.update();
     descBar.update();
     scheduleRefreshThumbs();

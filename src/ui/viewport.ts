@@ -133,9 +133,17 @@ export class Viewport {
     return this.mode === "shot" ? this.shotCam : this.mode === "top" ? this.topCam : this.directorCam;
   }
 
+  /** 按需渲染：置脏 + 合帧（一帧内多次请求只画一次） */
   requestRender(): void {
     this.dirty = true;
+    if (this.rafId === 0) {
+      this.rafId = requestAnimationFrame(() => {
+        this.rafId = 0;
+        this.render();
+      });
+    }
   }
+  private rafId = 0;
 
   render(): void {
     if (!this.dirty) return;
