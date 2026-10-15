@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>分镜生成器</title>
+  </head>
+  <body>
+    <div id="app">
+      <header id="toolbar">
+        <button id="btn-new" disabled title="P5">新建</button>
+        <button id="btn-open" disabled title="P5">打开</button>
+        <button id="btn-save" disabled title="P5">保存</button>
+        <div class="sep"></div>
+        <button id="btn-import" class="accent" disabled title="P5">导入AI JSON</button>
+        <button id="btn-prompt" class="accent" disabled title="P5">复制AI提示词</button>
+        <div class="sep"></div>
+        <button id="btn-undo" disabled title="Ctrl+Z（P2）">撤销</button>
+        <button id="btn-redo" disabled title="Ctrl+Shift+Z（P2）">重做</button>
+        <div class="sep"></div>
+        <button id="btn-png" disabled title="P5">导出PNG</button>
+        <button id="btn-sheet" disabled title="P5">分镜表</button>
+        <button id="btn-lightmap" disabled title="P5">灯位图</button>
+        <div class="sep"></div>
+        <label>画幅
+          <select id="aspect" disabled title="P3">
+            <option>3:2</option><option>4:3</option><option selected>16:9</option>
+            <option>4:5</option><option>1:1</option><option>9:16</option><option>2.39:1</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="shadows" disabled title="P4" /> 阴影</label>
+        <div class="spacer"></div>
+        <span id="proj-title">未命名项目</span>
+      </header>
+
+      <aside id="shot-list">
+        <div class="panel-title">镜头</div>
+        <div class="placeholder">镜头列表 · P2 实现</div>
+      </aside>
+
+      <main id="viewport">
+        <canvas id="view3d"></canvas>
+        <div id="view-hud" hidden></div>
+      </main>
+
+      <aside id="inspector">
+        <div class="panel-title">属性</div>
+        <div class="placeholder">属性面板 · P2 实现</div>
+      </aside>
+
+      <footer id="desc-bar">
+        <textarea id="shot-desc" disabled placeholder="本镜描述：画面内容、情绪、构图意图（P2 可编辑）"></textarea>
+        <textarea id="shot-notes" disabled placeholder="备注：灯光 / 服装 / 道具 / 台词（P2 可编辑）"></textarea>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
