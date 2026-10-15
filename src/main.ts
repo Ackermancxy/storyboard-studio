@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   const sm = new SceneManager(scene);
   const viewport = new Viewport(scene, store, sm, () => scheduleRefreshThumbs());
 
-  const toolbar = initToolbar(store);
+  const toolbar = initToolbar(store, { toggleOverlay: () => viewport.toggleOverlay() });
   const thumbs = initShotList(store, sm, scene, () => viewport.requestRender());
   const descBar = initDescBar(store);
   const inspector = initInspector({
@@ -46,7 +46,11 @@ async function main(): Promise<void> {
     refreshThumbs: () => thumbs.schedule(),
     rebuildPanel: () => inspector.update(),
   } as PanelCtx);
-  initKeyboard(store, { setMode: (m) => viewport.setMode(m) });
+  initKeyboard(store, {
+    setMode: (m) => viewport.setGizmoMode(m),
+    toggleView: () => viewport.toggleView(),
+    toggleTop: () => viewport.toggleTop(),
+  });
 
   let thumbsTimer: ReturnType<typeof setTimeout> | undefined;
   function scheduleRefreshThumbs(): void {

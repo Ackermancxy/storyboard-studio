@@ -23,11 +23,15 @@
         <button id="btn-lightmap" disabled title="P5">灯位图</button>
         <div class="sep"></div>
         <label>画幅
-          <select id="aspect" disabled title="P3">
+          <select id="aspect">
             <option>3:2</option><option>4:3</option><option selected>16:9</option>
             <option>4:5</option><option>1:1</option><option>9:16</option><option>2.39:1</option>
           </select>
         </label>
+        <label>机身
+          <select id="sensor" title="只影响 HUD 显示的等效换算"></select>
+        </label>
+        <button id="btn-overlay" title="三分线 / HUD 开关">辅助线</button>
         <label><input type="checkbox" id="shadows" disabled title="P4" /> 阴影</label>
         <div class="spacer"></div>
         <span id="proj-title">未命名项目</span>

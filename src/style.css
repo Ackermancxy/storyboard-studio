@@ -76,6 +76,17 @@ button.accent { color: var(--accent); border-color: color-mix(in srgb, var(--acc
   background: rgba(0, 0, 0, 0.35); padding: 2px 8px; border-radius: 4px;
   pointer-events: none;
 }
+/* 三分线 + 中心十字（机位视图覆盖层） */
+#view-hud[hidden] { display: none; }
+.thirds-line {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.22);
+}
+.thirds-line:nth-child(-n + 2) { top: 0; bottom: 0; width: 1px; }
+.thirds-line:nth-child(n + 3) { left: 0; right: 0; height: 1px; }
+.cross-h, .cross-v { position: absolute; background: rgba(255, 255, 255, 0.35); }
+.cross-h { left: 50%; top: 50%; width: 18px; height: 1px; transform: translate(-50%, -50%); }
+.cross-v { left: 50%; top: 50%; width: 1px; height: 18px; transform: translate(-50%, -50%); }
 
 /* ── 属性面板 ── */
 #inspector { grid-area: inspector; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }

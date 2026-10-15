@@ -1,9 +1,11 @@
-// P2：根据 store 的 Project 增量同步 three 对象（SPEC §3）。
-// 相机 / 灯光的同步在 P3 / P4 扩展；本阶段只管人物和道具。
+// P2/P3：根据 store 的 Project 增量同步 three 对象（SPEC §3）。
+// 相机：sync 时求解并存 cameraState；gaze 在摆姿势前注入。灯光同步在 P4。
 import * as THREE from "three";
 import type { Project, Shot } from "../types";
 import { getAllPresets } from "../data/userPresets";
-import { applyPose, autoGroundRig, resolvePose, type Rig } from "./rig";
+import { applyPose, autoGroundRig, resolvePose, type ResolvedPose, type Rig } from "./rig";
+import { applyGaze } from "./gaze";
+import { cameraHudText, solveCamera, type CameraSolve } from "./camera";
 import { buildMannequin, disposeMannequin, setRigColor, type Build } from "./mannequin";
 import { buildProp } from "./props";
 import { characterDef, propDef } from "./assets";
@@ -22,28 +24,75 @@ interface PropEntry {
 
 const HIGHLIGHT = 0x1e3f66;
 
+export function aspectValue(aspect: Project["aspect"]): number {
+  const [w, h] = aspect.split(":").map(Number);
+  return w / h;
+}
+
 export class SceneManager {
   private actors = new Map<string, ActorEntry>();
   private props = new Map<string, PropEntry>();
+  cameraState: CameraSolve | null = null;
+  private hudSpec = "";
 
   constructor(readonly scene: THREE.Scene) {}
 
   sync(project: Project, shotIndex: number): void {
     const shot = project.shots[shotIndex];
     if (!shot) return;
-    this.syncActors(shot);
     this.syncProps(shot);
+    this.solveShotCamera(project, shot);
+    this.syncActors(project, shot);
     this.applyHighlight();
   }
 
-  private syncActors(shot: Shot): void {
+  /** §7.2：auto 用求解；manual 用存的 position/target */
+  private solveShotCamera(project: Project, shot: Shot): void {
+    const aspect = aspectValue(project.aspect);
+    const cam = shot.camera;
+    if (cam.mode === "manual" && cam.position && cam.target) {
+      const position = new THREE.Vector3(...cam.position);
+      const target = new THREE.Vector3(...cam.target);
+      const up = new THREE.Vector3(0, 1, 0);
+      if (cam.roll) {
+        up.applyAxisAngle(target.clone().sub(position).normalize(), THREE.MathUtils.degToRad(cam.roll));
+      }
+      this.cameraState = { position, target, up, distance: position.distanceTo(target), subjectHeight: 1.7 };
+    } else {
+      const actors = shot.actors.map((a) => ({
+        id: a.id,
+        position: a.position,
+        facing: a.facing,
+        height: characterDef(a.model)?.height ?? 1.73,
+      }));
+      this.cameraState = solveCamera(cam, actors, aspect);
+    }
+    this.hudSpec = cameraHudText(cam, project.sensor);
+  }
+
+  hudText(): string {
+    return this.hudSpec;
+  }
+
+  get aspect(): number {
+    return aspectValue(this.proj?.aspect ?? "3:2");
+  }
+  private proj: Project | null = null;
+
+  private syncActors(project: Project, shot: Shot): void {
+    this.proj = project;
     const seen = new Set<string>();
+    const cameraPos = this.cameraState?.position ?? new THREE.Vector3(0, 1.5, 3);
+    const headByid = new Map<string, THREE.Vector3>();
+    for (const a of shot.actors) {
+      headByid.set(a.id, new THREE.Vector3(a.position[0], (characterDef(a.model)?.height ?? 1.73) * 0.93, a.position[1]));
+    }
+
     for (const actor of shot.actors) {
       seen.add(actor.id);
       const def = characterDef(actor.model);
-      const modelKey = actor.model;
       let entry = this.actors.get(actor.id);
-      if (entry && entry.modelKey !== modelKey) {
+      if (entry && entry.modelKey !== actor.model) {
         this.removeActor(actor.id);
         entry = undefined;
       }
@@ -54,7 +103,7 @@ export class SceneManager {
         const rig = this.buildCharacterRig(actor.model, actor.color);
         group.add(rig.root);
         this.scene.add(group);
-        entry = { group, rig, modelKey, colorKey: actor.color ?? "" };
+        entry = { group, rig, modelKey: actor.model, colorKey: "" };
         this.actors.set(actor.id, entry);
       }
       const colorKey = actor.color ?? def?.color ?? "";
@@ -64,7 +113,24 @@ export class SceneManager {
       }
       entry.group.position.set(actor.position[0], 0, actor.position[1]);
       entry.group.rotation.y = THREE.MathUtils.degToRad(actor.facing);
-      const pose = resolvePose(actor.pose, getAllPresets());
+
+      const presets = getAllPresets();
+      let pose: ResolvedPose = resolvePose(actor.pose, presets);
+      // gaze：第一遍摆好后取真实头部位置，再反算头颈（§5.6）
+      if (actor.gaze) {
+        applyPose(entry.rig, pose);
+        autoGroundRig(entry.rig, actor.elevation ?? 0);
+        entry.rig.root.updateMatrixWorld(true);
+        const head = new THREE.Vector3();
+        const marker = entry.rig.markers.get("noseTip") ?? entry.rig.joints.get("head")?.obj;
+        if (marker) marker.getWorldPosition(head);
+        else head.copy(headByid.get(actor.id)!);
+        const target =
+          actor.gaze === "camera"
+            ? cameraPos
+            : headByid.get(actor.gaze) ?? cameraPos;
+        applyGaze(pose, head, target, actor.facing);
+      }
       applyPose(entry.rig, pose);
       autoGroundRig(entry.rig, actor.elevation ?? 0);
     }
@@ -73,7 +139,7 @@ export class SceneManager {
     }
   }
 
-  /** P2：只有程序化木头人；P6 在此扩展 GLTF */
+  /** P2：程序化木头人；P6 在此扩展 GLTF */
   private buildCharacterRig(model: string, color?: string): Rig {
     const def = characterDef(model);
     if (!def || def.type === "procedural") {
@@ -138,7 +204,7 @@ export class SceneManager {
   }
 
   /** 点选用：从 mesh 往上找 entity 标记 */
-  findEntity(obj: THREE.Object3D | null): { type: "actor" | "prop"; id: string } | null {
+  findEntity(obj: THREE.Object3D | null): { type: "actor" | "prop" | "camera"; id: string } | null {
     let cur: THREE.Object3D | null = obj;
     while (cur) {
       if (cur.userData.entity) return cur.userData.entity;
@@ -156,28 +222,19 @@ export class SceneManager {
     return this.actors.get(id)?.rig;
   }
 
-  actorHeadWorld(id: string, out = new THREE.Vector3()): THREE.Vector3 | null {
-    const rig = this.rigOf(id);
-    if (!rig) return null;
-    const marker = rig.markers.get("noseTip") ?? rig.joints.get("head")?.obj;
-    if (!marker) return null;
-    rig.root.updateMatrixWorld(true);
-    return marker.getWorldPosition(out);
-  }
-
   private applyHighlight(): void {
-    const paint = (group: THREE.Object3D | null, on: boolean): void => {
+    const clear = (group: THREE.Object3D | null): void => {
       if (!group) return;
       group.traverse((o) => {
         const mesh = o as THREE.Mesh;
         if (mesh.isMesh) {
           const m = mesh.material as THREE.MeshStandardMaterial;
-          if (m && m.emissive) m.emissive.setHex(on ? HIGHLIGHT : 0x000000);
+          if (m && m.emissive) m.emissive.setHex(0x000000);
         }
       });
     };
-    for (const entry of this.actors.values()) paint(entry.group, false);
-    for (const entry of this.props.values()) paint(entry.group, false);
+    for (const entry of this.actors.values()) clear(entry.group);
+    for (const entry of this.props.values()) clear(entry.group);
   }
 
   setSelected(sel: Selection): void {
@@ -204,10 +261,9 @@ function placeholderRig(height: number, color: string): Rig {
   );
   mesh.position.y = height / 2;
   root.add(mesh);
-  const joints = new Map();
   return {
     root,
-    joints,
+    joints: new Map(),
     height,
     hipHeight: height * 0.53,
     markers: new Map(),

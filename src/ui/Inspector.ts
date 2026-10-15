@@ -6,6 +6,7 @@ import type { SceneManager } from "../scene/SceneManager";
 import { characterDef, getManifest, propDef } from "../scene/assets";
 import { buildActorPanel } from "./panels/actorPanel";
 import { buildPropPanel } from "./panels/propPanel";
+import { buildCameraPanel } from "./panels/cameraPanel";
 
 export interface PanelCtx {
   store: Store;
@@ -91,7 +92,7 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
     };
     shot.actors.forEach((a) => row(a.label ? `${a.label}（${a.id}）` : a.id, "actor", a.id));
     shot.props.forEach((pr) => row(propDef(pr.model)?.name ?? pr.model, "prop", pr.id));
-    // 灯光行 / 相机行在 P4 / P3 加入
+    row("相机", "camera", "camera");
     addRow();
   }
 
@@ -109,6 +110,8 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
     } else if (sel.type === "prop") {
       const prop = store.findSelectedProp();
       if (prop) buildPropPanel(gui, ctx2, prop);
+    } else if (sel.type === "camera") {
+      buildCameraPanel(gui, ctx2, store.shot);
     }
   }
 

@@ -1,10 +1,14 @@
-// P2：快捷键。视图切换（Tab/T）在 P3 加。
+// P2/P3：快捷键。Tab 切机位/导演、T 俯视、W/E 平移/旋转、Delete 删除、1–9 跳镜头。
 import type { Store } from "../state/store";
 import { nextId } from "../state/store";
 
 export function initKeyboard(
   store: Store,
-  hooks: { setMode: (m: "translate" | "rotate") => void },
+  hooks: {
+    setMode: (m: "translate" | "rotate") => void;
+    toggleView: () => void;
+    toggleTop: () => void;
+  },
 ): void {
   window.addEventListener("keydown", (e) => {
     const t = e.target as HTMLElement;
@@ -27,10 +31,17 @@ export function initKeyboard(
       return;
     }
     switch (e.key) {
+      case "Tab": e.preventDefault(); hooks.toggleView(); break;
+      case "t": case "T": hooks.toggleTop(); break;
       case "w": case "W": hooks.setMode("translate"); break;
       case "e": case "E": hooks.setMode("rotate"); break;
       case "Delete": case "Backspace": deleteSelected(store); break;
-      default: break;
+      default:
+        if (/^[1-9]$/.test(e.key)) {
+          const i = parseInt(e.key, 10) - 1;
+          if (i < store.project.shots.length) store.setShotIndex(i);
+        }
+        break;
     }
   });
 }

@@ -2,12 +2,13 @@
 import * as THREE from "three";
 import type { Project } from "../types";
 import { nextShotId, newShot, type Store } from "../state/store";
+import { FILM_GAUGE } from "../scene/camera";
 import type { SceneManager } from "../scene/SceneManager";
 
-/** 离屏小渲染器，逐镜捕获缩略图（P3 换机位视图相机） */
+/** 离屏小渲染器，逐镜按机位求解结果捕获缩略图 */
 export class ThumbService {
   private renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-  private camera = new THREE.PerspectiveCamera(45, 1.6, 0.05, 200);
+  private camera = new THREE.PerspectiveCamera(45, 1.6, 0.02, 400);
   private thumbs = new Map<string, string>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private busy = false;
@@ -19,8 +20,7 @@ export class ThumbService {
     private onDone: () => void,
   ) {
     this.renderer.setSize(320, 200, false);
-    this.camera.position.set(3.6, 2.6, 4.8);
-    this.camera.lookAt(0, 0.9, 0);
+    this.camera.filmGauge = FILM_GAUGE;
   }
 
   schedule(): void {
@@ -47,6 +47,15 @@ export class ThumbService {
     const shot = project.shots[index];
     if (!shot) return;
     this.sm.sync(project, index);
+    // 用该镜的机位渲染（1.6 = 320/200 缩略图宽高比）
+    const cs = this.sm.cameraState;
+    if (cs) {
+      this.camera.position.copy(cs.position);
+      this.camera.up.copy(cs.up);
+      this.camera.lookAt(cs.target);
+      this.camera.setFocalLength(shot.camera.focalLength ?? 50);
+      this.camera.updateProjectionMatrix();
+    }
     this.renderer.render(this.scene, this.camera);
     const url = this.renderer.domElement.toDataURL("image/jpeg", 0.72);
     this.thumbs.set(shot.id, url);
