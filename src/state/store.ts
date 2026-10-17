@@ -30,7 +30,7 @@ export function sampleProject(): Project {
   s1.name = "全景";
   s1.description = "人物全身站立，交代环境与体态";
   s1.actors = [{
-    id: "A", label: "主角", model: "woman", position: [0, 0], facing: 15,
+    id: "A", label: "主角", model: "mikoto", position: [0, 0], facing: 15,
     pose: { preset: "stand" }, gaze: null,
   }];
   s1.camera = { mode: "auto", focalLength: 35, shotSize: "FS", azimuth: 20, angle: "eye", placement: "center" };
@@ -38,7 +38,7 @@ export function sampleProject(): Project {
   const s2 = newShot("S02", "坐姿中景");
   s2.description = "坐在椅子上，腰部以上中景";
   s2.actors = [{
-    id: "A", label: "主角", model: "woman", position: [0, 0], facing: -20,
+    id: "A", label: "主角", model: "mikoto", position: [0, 0], facing: -20,
     pose: { preset: "sit_chair" }, gaze: "camera",
   }];
   s2.props = [{ id: "P1", model: "chair", position: [0, 0], facing: -20 }];
@@ -198,15 +198,19 @@ export class Store {
 
 /** 镜内唯一 id：按前缀取现有最大序号 +1（A/B/C…、P1/P2…、L1/L2…） */
 export function nextId(existing: { id: string }[], prefix: string): string {
-  let max = 0;
-  for (const e of existing) {
-    if (!e.id.startsWith(prefix)) continue;
-    const n = parseInt(e.id.slice(prefix.length), 10);
-    if (Number.isFinite(n)) max = Math.max(max, n);
-  }
+  // 注意：人物 id 是纯字母（A/B/C…），不能靠 parseInt 取最大值 —— "A".slice(1) 是 ""，
+  // parseInt 得 NaN，原实现会再生成一个 "A" 造成重号（场景按 id 索引，重号会互相顶掉）
+  const used = new Set(existing.map((e) => e.id));
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  if (prefix === "A") return letters[max] ?? `A${max}`;
-  return `${prefix}${max + 1}`;
+  if (prefix === "A") {
+    for (const ch of letters) if (!used.has(ch)) return ch;
+    let n = 1;
+    while (used.has(`A${n}`)) n++;
+    return `A${n}`;
+  }
+  let n = 1;
+  while (used.has(`${prefix}${n}`)) n++;
+  return `${prefix}${n}`;
 }
 
 export function nextShotId(shots: { id: string }[]): string {

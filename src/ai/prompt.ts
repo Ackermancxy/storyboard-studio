@@ -14,7 +14,7 @@ const TEMPLATE = `你是一名电影/商业摄影分镜师。根据我描述的�
     "id": "S01", "name": "短标题", "description": "画面内容、情绪、前景背景、构图意图", "notes": "灯光/服装/道具/台词", "duration": 3,
     "camera": { "mode": "auto", "subject": "A", "shotSize": "MS", "focalLength": 50,
                 "azimuth": 0, "angle": "eye", "placement": "center", "roll": 0 },
-    "actors": [{ "id": "A", "label": "新娘", "model": "woman", "position": [0, 0], "facing": 0,
+    "actors": [{ "id": "A", "label": "新娘", "model": "mikoto", "position": [0, 0], "facing": 0,
                  "pose": { "preset": "stand", "joints": { "head": { "turn": 20 } } }, "gaze": "camera" }],
     "props": [{ "id": "P1", "model": "chair", "position": [0, 0], "facing": 0 }],
     "lights": [{ "id": "L1", "role": "key", "type": "soft", "azimuth": 45, "elevation": 35, "intensity": 1, "colorTemp": 5600 }]

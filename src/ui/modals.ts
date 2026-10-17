@@ -15,12 +15,18 @@ import type { Pose } from "../types";
 const HELP_HTML = `
   <h3>快捷键</h3>
   <div class="warnings" style="color:var(--text);white-space:normal">
-<b>Tab</b> 机位 / 导演视图切换　<b>T</b> 俯视视图<br>
+<b>Tab</b>（或工具栏「切换视角」）机位 ⇄ 导演视图，飞行中切换不中断　<b>T</b> 俯视视图<br>
+<b>Home</b> 取景重置（把机位和主体一起框回画面）<br>
 <b>W / E</b> 移动 / 旋转选中对象　<b>Delete</b> 删除选中<br>
+<b>F</b> 飞行当前视图相机（第三人称=导演相机；机位视图=机位相机）<br>
+<b>V</b> 飞行机位相机（第三人称下也能飞机位）　<b>X</b> 用飞行键位控制选中对象<br>
+　飞行中：<b>WASD</b> 平移　<b>鼠标左键/右键拖拽</b> 环视 / 物体转向　<b>Shift</b> 加速　<b>Ctrl</b> 微调<br>
+　　<b>Space / C</b> 升降　<b>滚轮</b> 调速　<b>Esc / 再按同键 / Tab</b> 退出<br>
 <b>1–9</b> 跳到第 N 个镜头　<b>Ctrl+D</b> 复制选中对象<br>
 <b>Ctrl+Z</b> 撤销　<b>Ctrl+Shift+Z / Ctrl+Y</b> 重做<br>
 <b>Shift+点「导出PNG」</b> 不带三分线/HUD　<b>Shift+点「复制AI提示词」</b> 复制当前项目让 AI 继续改<br>
-鼠标拖动 = 旋转视角（导演视图），滚轮缩放
+鼠标拖动 = 旋转视角（导演视图），滚轮缩放<br>
+导演视图点选对象后用轴拖动：人物/道具在 XZ 平面，<b>灯</b>可三轴拖动（自动换算方位/仰角/距离）
   </div>
   <div class="actions"><button data-act="close">关闭</button></div>`;
 

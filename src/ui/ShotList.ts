@@ -24,6 +24,8 @@ export class ThumbService {
     private sm: SceneManager,
     private onThumb: (shotId: string, url: string) => void,
     private onDone: () => void,
+    /** 捕获前后开关场景辅助物（gizmo/灯位线）；和主视口共用 scene，不关会被拍进缩略图 */
+    private helpers: (visible: boolean) => void = () => {},
   ) {
     this.renderer.setSize(320, 200, false);
     this.camera.filmGauge = FILM_GAUGE;
@@ -49,13 +51,18 @@ export class ThumbService {
     this.busy = true;
     const store = currentStore;
     const project = store.project;
-    for (let i = 0; i < project.shots.length; i++) {
-      this.captureShot(project, i);
-      await new Promise((r) => setTimeout(r, 0)); // 让出主线程
+    this.helpers(false);
+    try {
+      for (let i = 0; i < project.shots.length; i++) {
+        this.captureShot(project, i);
+        await new Promise((r) => setTimeout(r, 0)); // 让出主线程
+      }
+    } finally {
+      // 恢复当前镜头的场景
+      this.sm.sync(store.project, store.shotIndex);
+      this.helpers(true);
+      this.busy = false;
     }
-    // 恢复当前镜头的场景
-    this.sm.sync(store.project, store.shotIndex);
-    this.busy = false;
     this.onDone();
   }
 
@@ -91,10 +98,11 @@ export function initShotList(
   sm: SceneManager,
   scene: THREE.Scene,
   requestRender: () => void,
+  setHelpers?: (visible: boolean) => void,
 ): { thumbs: ThumbService; update: () => void } {
   currentStore = store;
   const root = document.getElementById("shot-items")!;
-  const thumbs = new ThumbService(scene, sm, onThumb, requestRender);
+  const thumbs = new ThumbService(scene, sm, onThumb, requestRender, setHelpers);
   let structKey = "";
 
   function onThumb(shotId: string, url: string): void {

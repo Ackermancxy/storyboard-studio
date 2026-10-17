@@ -6,6 +6,8 @@ import type { Store } from "../state/store";
 import type { Shot } from "../types";
 import type { SceneManager } from "../scene/SceneManager";
 import { FILM_GAUGE } from "../scene/camera";
+import { characterDef } from "../scene/assets";
+import { FlyControls, type FlySubject, type FlyTarget } from "./flycam";
 
 export type ViewMode = "shot" | "director" | "top";
 
@@ -29,6 +31,16 @@ export class Viewport {
   private camHelper: THREE.CameraHelper;
   overlayVisible = true;
   private camDragRef: { forward: THREE.Vector3; dist: number } | null = null;
+  /** 飞行相机（WASD + 鼠标）；机位视图下直接驱动机位相机并写回 manual */
+  private fly: FlyControls;
+  private flyHint: HTMLDivElement;
+  private flyDist = 3;
+  private lastFlyWrite = 0;
+  /** 当前飞行目标 + 物体飞行用的代理位置 */
+  private flyTargetName: FlyTarget | null = null;
+  private flyPos = new THREE.Vector3();
+  private gizmoMode: "translate" | "rotate" = "translate";
+  private helpersHidden = false;
 
   constructor(
     private scene: THREE.Scene,
@@ -125,6 +137,21 @@ export class Viewport {
     this.overlay.appendChild(this.hud);
     this.container.appendChild(this.overlay);
 
+    this.flyHint = document.createElement("div");
+    this.flyHint.id = "fly-hint";
+    this.flyHint.style.cssText =
+      "position:absolute;left:10px;bottom:10px;padding:4px 10px;border-radius:5px;" +
+      "background:rgba(0,0,0,.55);color:#d8d8de;font-size:12px;display:none;pointer-events:none;z-index:5;";
+    this.container.appendChild(this.flyHint);
+
+    this.fly = new FlyControls(canvas);
+    this.fly.onRelease = () => {
+      this.flushFlyWrite();
+      this.store.endDrag();
+      this.requestRender();
+    };
+    this.fly.onClick = (e) => this.pickAt(e);
+
     canvas.addEventListener("pointerdown", (e) => this.onPointerDown(e));
     new ResizeObserver(() => this.resize()).observe(this.container);
     this.resize();
@@ -155,19 +182,21 @@ export class Viewport {
     const h = this.container.clientHeight;
 
     // 相机 gizmo / 视锥 / 灯位只在导演和俯视视图显示
-    const showGizmos = this.mode !== "shot";
+    const showGizmos = this.mode !== "shot" && !this.helpersHidden;
     this.camGizmo.visible = showGizmos;
     this.camHelper.visible = showGizmos;
     this.sm.setGizmosVisible(showGizmos);
-    this.tcontrols.enabled = this.mode === "director";
+    const flying = this.fly.active;
+    this.tcontrols.enabled = this.mode === "director" && !flying;
 
-    // 相机 gizmo 跟随机位相机
-    this.updateShotCamera(shot);
+    // 相机 gizmo 跟随机位相机；正在飞它时由飞行器接管（机位视图或第三人称飞机位）
+    const drivingShot = flying && (this.mode === "shot" || this.flyTargetName === "shot");
+    if (!drivingShot) this.updateShotCamera(shot);
     this.camGizmo.position.copy(this.shotCam.position);
     this.camGizmo.quaternion.copy(this.shotCam.quaternion);
     this.camHelper.update();
 
-    this.directorControls.enabled = this.mode === "director" && !this.tcontrols.dragging;
+    this.directorControls.enabled = this.mode === "director" && !this.tcontrols.dragging && !flying;
     this.topControls.enabled = this.mode === "top" && !this.tcontrols.dragging;
 
     this.renderer.setScissorTest(true);
@@ -231,6 +260,7 @@ export class Viewport {
   }
 
   setMode(mode: ViewMode): void {
+    this.stopFly();
     this.mode = mode;
     this.tcontrols.detach();
     this.overlay.style.display = "block";
@@ -239,8 +269,12 @@ export class Viewport {
     }
     this.requestRender();
   }
+  /** 视角切换：机位 ⇄ 导演（俯视时回机位）；飞行中切换不中断，接着飞新视图的相机 */
   toggleView(): void {
+    const wasFlying = this.fly.active;
+    const target = this.flyTargetName;
     this.setMode(this.mode === "shot" ? "director" : "shot");
+    if (wasFlying) this.toggleFly(target ?? "view");
   }
   toggleTop(): void {
     this.setMode(this.mode === "top" ? "shot" : "top");
@@ -274,7 +308,12 @@ export class Viewport {
   }
 
   private onPointerDown(e: PointerEvent): void {
-    if (e.button !== 0 || this.tcontrols.dragging) return;
+    if (e.button !== 0 || this.tcontrols.dragging || this.fly.active) return;
+    this.pickAt(e);
+  }
+
+  /** 拾取：点选人物/道具/灯/相机 */
+  private pickAt(e: PointerEvent): void {
     const rect = this.renderer.domElement.getBoundingClientRect();
     const ndc = new THREE.Vector2(
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -307,7 +346,7 @@ export class Viewport {
   }
 
   setSelection(sel: { type: string; id: string } | null): void {
-    if (this.mode !== "director" || !sel) {
+    if (this.mode !== "director" || !sel || this.fly.active) {
       this.tcontrols.detach();
       this.requestRender();
       return;
@@ -315,18 +354,255 @@ export class Viewport {
     if (sel.type === "camera") {
       this.tcontrols.attach(this.camGizmo);
     } else {
-      const group = this.sm.groupOf(sel.type as "actor" | "prop", sel.id);
+      const group = this.sm.groupOf(sel.type as "actor" | "prop" | "light", sel.id);
       if (group) this.tcontrols.attach(group);
       else this.tcontrols.detach();
     }
+    this.setGizmoMode(this.gizmoMode);
     this.requestRender();
   }
 
   setGizmoMode(mode: "translate" | "rotate"): void {
+    this.gizmoMode = mode;
     this.tcontrols.setMode(mode);
-    this.tcontrols.showX = mode === "translate";
-    this.tcontrols.showY = false;
-    this.tcontrols.showZ = mode === "translate";
+    // 灯要 3D 摆位（绕被摄者定方位）；人物/道具只在 XZ 平面挪
+    const isLight = this.store.selected?.type === "light";
+    this.tcontrols.showX = true;
+    this.tcontrols.showY = mode === "translate" && isLight;
+    this.tcontrols.showZ = true;
+    this.requestRender();
+  }
+
+  /** 离屏捕获（缩略图/导出）期间隐藏 gizmo：它们和正式画面共用同一个 scene，
+   *  不隐藏会把相机模型、灯位线、变换轴一起拍进图里（表现为缩略图整块绿）。 */
+  setHelpersVisible(visible: boolean): void {
+    this.helpersHidden = !visible;
+    // 必须同步生效：缩略图/导出是当场同步渲染的，等不到下一次 rAF
+    const show = visible && this.mode !== "shot";
+    this.camGizmo.visible = show;
+    this.camHelper.visible = show;
+    this.tcontrols.getHelper().visible = show;
+    this.sm.setGizmosVisible(show);
+    this.requestRender();
+  }
+
+  /* ── 飞行（WASD + 鼠标）：可驱动视图相机 / 机位相机 / 选中对象 ── */
+  get flying(): boolean {
+    return this.fly.active;
+  }
+
+  get flyTarget(): FlyTarget | null {
+    return this.flyTargetName;
+  }
+
+  /**
+   * @param target view = 当前视图相机（第三人称=导演相机，机位视图=机位相机）
+   *               shot = 机位相机（第三人称下也可飞它）
+   *               selected = 用飞行键位控制选中的人物/道具/灯/相机
+   */
+  toggleFly(target: FlyTarget): void {
+    if (this.fly.active) {
+      const same = this.flyTargetName === target;
+      this.stopFly();
+      if (same) return; // 再按一次同一个键 = 退出
+    }
+    if (this.mode === "top") return; // 俯视视图不放飞
+    const subj = this.makeFlySubject(target);
+    if (!subj) return;
+    this.flyTargetName = target;
+    const cs = this.sm.cameraState;
+    this.flyDist = cs ? Math.max(0.3, cs.position.distanceTo(cs.target)) : 3;
+    this.tcontrols.detach();
+    this.directorControls.enabled = false;
+    this.store.beginDragOnce(); // 一次飞行算一步撤销
+    this.fly.enter(subj);
+    this.refreshFlyHint();
+    this.flyHint.style.display = "block";
+    this.requestRender();
+  }
+
+  /** 取景重置：把机位相机和主体一起框回导演视图（相机被拖远/飞丢时用） */
+  frameAll(): void {
+    const cs = this.sm.cameraState;
+    const camPos = this.shotCam.position.clone();
+    const subject = cs ? cs.target.clone() : new THREE.Vector3(0, 0.9, 0);
+    const mid = camPos.clone().add(subject).multiplyScalar(0.5);
+    const span = camPos.distanceTo(subject);
+    const dist = THREE.MathUtils.clamp(span * 0.9 + 1.5, 2.5, 12);
+    const side = new THREE.Vector3(0.7, 0.55, 0.7).normalize();
+    this.directorCam.position.copy(mid).addScaledVector(side, dist);
+    this.directorControls.target.copy(mid);
+    this.directorControls.update();
+    this.requestRender();
+  }
+
+  /** 退出飞行（Esc / 切视图） */
+  exitFly(): void {
+    this.stopFly();
+  }
+
+  private stopFly(): void {
+    if (!this.fly.active) return;
+    this.flushFlyWrite();
+    this.fly.exit();
+    this.flyTargetName = null;
+    this.flyHint.style.display = "none";
+    this.store.endDrag();
+    this.requestRender();
+  }
+
+  private refreshFlyHint(): void {
+    if (this.fly.active) this.flyHint.textContent = this.fly.hint();
+  }
+
+  private makeFlySubject(target: FlyTarget): FlySubject | null {
+    if (target === "selected") {
+      const sel = this.store.selected;
+      if (!sel) return null;
+      if (sel.type === "camera") return this.shotCamSubject("机位相机");
+      const group = this.sm.groupOf(sel.type as "actor" | "prop" | "light", sel.id);
+      if (!group) return null;
+      const isLight = sel.type === "light";
+      // 人物/道具的 group.y 恒为 0（高度由 elevation 驱动），所以用代理位置
+      const baseY = isLight ? group.position.y : this.selectedElevation(sel);
+      this.flyPos.set(group.position.x, Math.max(0, baseY), group.position.z);
+      const viewQ = (this.mode === "shot" ? this.shotCam : this.directorCam).quaternion.clone();
+      return {
+        label: `${kindName(sel.type)} ${sel.id}`,
+        position: this.flyPos,
+        allowPitch: false, // 物体只转朝向，不翻跟头
+        minY: 0,
+        frame: viewQ,
+        getYaw: () => THREE.MathUtils.radToDeg(group.rotation.y),
+        getPitch: () => 0,
+        setYawPitch: (yaw) => {
+          if (!isLight) group.rotation.y = THREE.MathUtils.degToRad(yaw);
+        },
+        commit: () => this.commitSelected(sel, group),
+      };
+    }
+    if (target === "shot" || this.mode === "shot") {
+      return this.shotCamSubject(target === "shot" ? "机位相机" : "机位相机（当前视图）");
+    }
+    return this.cameraSubject(this.directorCam, "导演相机", () => this.requestRender());
+  }
+
+  private cameraSubject(
+    cam: THREE.PerspectiveCamera,
+    label: string,
+    after: () => void,
+  ): FlySubject {
+    return {
+      label,
+      position: cam.position,
+      allowPitch: true,
+      minY: 0.05,
+      getYaw: () => new THREE.Euler().setFromQuaternion(cam.quaternion, "YXZ").y,
+      getPitch: () => new THREE.Euler().setFromQuaternion(cam.quaternion, "YXZ").x,
+      setYawPitch: (yaw, pitch) => {
+        cam.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
+        cam.updateMatrixWorld();
+      },
+      commit: () => {
+        this.refreshFlyHint();
+        after();
+      },
+    };
+  }
+
+  private shotCamSubject(label: string): FlySubject {
+    return this.cameraSubject(this.shotCam, label, () => this.writeBackShotCam());
+  }
+
+  private selectedElevation(sel: { type: string; id: string }): number {
+    const shot = this.store.shot;
+    if (sel.type === "actor") return shot.actors.find((a) => a.id === sel.id)?.elevation ?? 0;
+    if (sel.type === "prop") return shot.props.find((x) => x.id === sel.id)?.elevation ?? 0;
+    return 0;
+  }
+
+  /** 飞行控制选中物体：写回位置/朝向/垫高（灯则换算方位角/仰角/距离） */
+  private commitSelected(sel: { type: string; id: string }, group: THREE.Object3D): void {
+    const now = performance.now();
+    if (now - this.lastFlyWrite < 100) return; // 节流，别每帧重建整个场景
+    this.lastFlyWrite = now;
+    this.refreshFlyHint();
+    const p = this.flyPos;
+    const facingDeg = THREE.MathUtils.radToDeg(group.rotation.y);
+    this.store.beginDragOnce();
+    this.store.preview((proj) => {
+      const s = proj.shots[this.store.shotIndex];
+      if (sel.type === "actor") {
+        const a = s.actors.find((x) => x.id === sel.id);
+        if (a) {
+          a.position = [round2(p.x), round2(p.z)];
+          a.facing = Math.round(facingDeg);
+          a.elevation = Math.max(0, round2(p.y));
+        }
+      } else if (sel.type === "prop") {
+        const pr = s.props.find((x) => x.id === sel.id);
+        if (pr) {
+          pr.position = [round2(p.x), round2(p.z)];
+          pr.facing = Math.round(facingDeg);
+          pr.elevation = Math.max(0, round2(p.y));
+        }
+      } else if (sel.type === "light") {
+        const l = s.lights.find((x) => x.id === sel.id);
+        const subj = s.actors.find((a) => a.id === l?.subject) ?? s.actors[0];
+        if (l && subj) {
+          const h = characterDef(subj.model)?.height ?? 1.73;
+          const aim = new THREE.Vector3(subj.position[0], h * 0.75, subj.position[1]);
+          const d = new THREE.Vector3(p.x, p.y, p.z).sub(aim);
+          const dist = d.length();
+          if (dist > 1e-3) {
+            l.azimuth = Math.round(
+              normalizeDeg(THREE.MathUtils.radToDeg(Math.atan2(d.x, d.z)) - subj.facing),
+            );
+            l.elevation = Math.round(
+              THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(d.y / dist, -1, 1))),
+            );
+            l.distance = round2(Math.max(0.3, dist));
+          }
+        }
+      }
+    });
+    this.requestRender();
+  }
+
+  /** 收尾：把节流中最后一次改动强制写回 */
+  private flushFlyWrite(): void {
+    this.lastFlyWrite = 0;
+    const target = this.flyTargetName;
+    if (target === "selected") {
+      const sel = this.store.selected;
+      if (!sel) return;
+      if (sel.type === "camera") {
+        this.writeBackShotCam(true);
+      } else {
+        const group = this.sm.groupOf(sel.type as "actor" | "prop" | "light", sel.id);
+        if (group) this.commitSelected(sel, group);
+      }
+      return;
+    }
+    if (target === "shot") this.writeBackShotCam(true);
+  }
+
+  /** 机位相机飞行：把 shotCam 的位置/朝向写回 manual 机位（节流，避免每帧重建） */
+  private writeBackShotCam(force = false): void {
+    if (!(this.mode === "shot" || this.flyTargetName === "shot")) return;
+    const now = performance.now();
+    if (!force && now - this.lastFlyWrite < 120) return;
+    this.lastFlyWrite = now;
+    this.refreshFlyHint();
+    const pos = this.shotCam.position;
+    const target = pos.clone().addScaledVector(this.fly.forward(), this.flyDist);
+    this.store.beginDragOnce();
+    this.store.preview((p) => {
+      const cam = p.shots[this.store.shotIndex].camera;
+      cam.mode = "manual";
+      cam.position = [round2(pos.x), round2(pos.y), round2(pos.z)];
+      cam.target = [round2(target.x), round2(target.y), round2(target.z)];
+    });
     this.requestRender();
   }
 
@@ -347,11 +623,15 @@ export class Viewport {
     });
   }
 
-  /** 拖人物/道具 gizmo → 写回 store */
+  /** 拖人物/道具/灯 gizmo → 写回 store */
   private writeBackTransform(): void {
     const obj = this.tcontrols.object;
     const sel = this.store.selected;
     if (!obj || !sel || sel.type === "camera") return;
+    if (sel.type === "light") {
+      this.writeBackLight(obj.position);
+      return;
+    }
     const p = obj.position;
     const facingDeg = THREE.MathUtils.radToDeg(obj.rotation.y);
     this.store.beginDragOnce();
@@ -372,8 +652,43 @@ export class Viewport {
       }
     });
   }
+
+  /** 拖灯 gizmo：世界坐标逆算回 azimuth / elevation / distance（placeLight 的逆运算） */
+  private writeBackLight(pos: THREE.Vector3): void {
+    const shot = this.store.shot;
+    const light = shot.lights.find((l) => l.id === this.store.selected?.id);
+    if (!light) return;
+    const subject = shot.actors.find((a) => a.id === light.subject) ?? shot.actors[0];
+    if (!subject) return;
+    const h = characterDef(subject.model)?.height ?? 1.73;
+    const aim = new THREE.Vector3(subject.position[0], h * 0.75, subject.position[1]);
+    const d = pos.clone().sub(aim);
+    const dist = d.length();
+    if (dist < 1e-3) return;
+    const elevation = THREE.MathUtils.radToDeg(
+      Math.asin(THREE.MathUtils.clamp(d.y / dist, -1, 1)),
+    );
+    const azimuth = normalizeDeg(THREE.MathUtils.radToDeg(Math.atan2(d.x, d.z)) - subject.facing);
+    this.store.beginDragOnce();
+    this.store.preview((proj) => {
+      const l = proj.shots[this.store.shotIndex].lights.find((x) => x.id === light.id);
+      if (!l) return;
+      l.azimuth = Math.round(azimuth);
+      l.elevation = Math.round(elevation);
+      l.distance = round2(Math.max(0.3, dist));
+    });
+  }
 }
 
 function round2(v: number): number {
   return Math.round(v * 100) / 100;
+}
+
+function kindName(type: string): string {
+  return { actor: "人物", prop: "道具", light: "灯", camera: "相机" }[type] ?? type;
+}
+
+function normalizeDeg(v: number): number {
+  const w = ((v + 180) % 360 + 360) % 360 - 180;
+  return w;
 }

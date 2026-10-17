@@ -1,18 +1,25 @@
 {
   "characters": [
     {
+      "id": "mikoto",
+      "name": "女生",
+      "type": "mmd",
+      "file": "models/mikoto/御坂美琴.pmx",
+      "height": 1.56,
+      "rotateY": 0,
+      "boneMap": "mmd",
+      "hideTextures": [
+        "下着",
+        "水着",
+        "スク水"
+      ]
+    },
+    {
       "id": "man",
       "name": "男",
       "type": "procedural",
       "build": "male",
       "height": 1.78
-    },
-    {
-      "id": "woman",
-      "name": "女",
-      "type": "procedural",
-      "build": "female",
-      "height": 1.65
     },
     {
       "id": "child",
@@ -29,20 +36,6 @@
       "height": 1.75,
       "rotateY": 0,
       "boneMap": "mixamo"
-    },
-    {
-      "id": "mikoto",
-      "name": "御坂美琴",
-      "type": "mmd",
-      "file": "models/mikoto/御坂美琴.pmx",
-      "height": 1.56,
-      "rotateY": 0,
-      "boneMap": "mmd",
-      "hideTextures": [
-        "下着",
-        "水着",
-        "スク水"
-      ]
     }
   ],
   "props": [

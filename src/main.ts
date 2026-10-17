@@ -63,7 +63,9 @@ async function main(): Promise<void> {
   }
 
   try {
-    shotList = initShotList(store, sm, scene, () => viewport.requestRender());
+    shotList = initShotList(store, sm, scene, () => viewport.requestRender(), (v) =>
+      viewport.setHelpersVisible(v),
+    );
     thumbs = shotList.thumbs;
   } catch (err) {
     fail("镜头列表", err);
@@ -73,9 +75,25 @@ async function main(): Promise<void> {
   try {
     toolbar = initToolbar(store, {
       toggleOverlay: () => viewport.toggleOverlay(),
-      exportPng: (withOverlay) => void exportShotPNG(store, sm, scene, withOverlay),
-      exportSheet: () => void exportContactSheet(store, sm, scene),
+      // 导出时隐藏 gizmo（与视口共用 scene），否则导演视图下导出会带相机模型/灯位线
+      exportPng: (withOverlay) => {
+        viewport.setHelpersVisible(false);
+        try {
+          void exportShotPNG(store, sm, scene, withOverlay);
+        } finally {
+          viewport.setHelpersVisible(true);
+        }
+      },
+      exportSheet: () => {
+        viewport.setHelpersVisible(false);
+        try {
+          void exportContactSheet(store, sm, scene);
+        } finally {
+          viewport.setHelpersVisible(true);
+        }
+      },
       exportLightMap: () => exportLightMap(store),
+      switchView: () => viewport.toggleView(),
     });
     window.addEventListener("storyboard:shadows", (e) => {
       viewport.setShadows((e as CustomEvent<boolean>).detail);
@@ -92,6 +110,10 @@ async function main(): Promise<void> {
       setMode: (m) => viewport.setGizmoMode(m),
       toggleView: () => viewport.toggleView(),
       toggleTop: () => viewport.toggleTop(),
+      frameAll: () => viewport.frameAll(),
+      toggleFly: (target) => viewport.toggleFly(target),
+      exitFly: () => viewport.exitFly(),
+      isFlying: () => viewport.flying,
     });
   } catch (err) {
     fail("工具栏/面板", err);

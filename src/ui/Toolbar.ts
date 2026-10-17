@@ -14,11 +14,12 @@ export interface ToolbarHooks {
   exportPng?: (withOverlay: boolean) => void;
   exportSheet?: () => void;
   exportLightMap?: () => void;
+  switchView?: () => void;
 }
 
 export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => void } {
   const $ = (id: string): HTMLButtonElement => document.getElementById(id) as HTMLButtonElement;
-  for (const id of ["btn-new", "btn-open", "btn-save", "btn-import", "btn-prompt", "btn-undo", "btn-redo", "btn-png", "btn-sheet", "btn-lightmap"]) {
+  for (const id of ["btn-new", "btn-open", "btn-save", "btn-import", "btn-prompt", "btn-undo", "btn-redo", "btn-png", "btn-sheet", "btn-lightmap", "btn-view"]) {
     $(id).disabled = false;
   }
 
@@ -63,6 +64,7 @@ export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => 
   });
   $("btn-sheet").addEventListener("click", () => hooks.exportSheet?.());
   $("btn-lightmap").addEventListener("click", () => hooks.exportLightMap?.());
+  $("btn-view").addEventListener("click", () => hooks.switchView?.());
 
   // 画幅 / 传感器
   const aspectSel = document.getElementById("aspect") as HTMLSelectElement;

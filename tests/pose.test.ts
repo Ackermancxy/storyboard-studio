@@ -194,3 +194,62 @@ describe("预设几何合理性", () => {
     expect(box.min.y).toBeCloseTo(0, 1);
   });
 });
+
+// 回归：autoGround 必须按「蒙皮后」的最低点落地。
+// SkinnedMesh 的 geometry.boundingBox 是绑定姿态的，Box3.setFromObject 默认不采样蒙皮，
+// 于是坐/跪/躺会整体浮空（MMD 坐台阶那镜就是这样浮了 0.42m）。
+describe("autoGroundRig（蒙皮网格）", () => {
+  /** 一竖条四边形，绑定姿态最低点 y=0，由单根骨骼驱动 */
+  function skinnedRig(): { rig: Rig; bone: THREE.Bone } {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([
+      0, 0, 0, 0, 1, 0, 0.4, 0, 0, 0.4, 1, 0,
+    ]), 3));
+    geo.setAttribute("skinIndex", new THREE.BufferAttribute(new Uint16Array(16), 4));
+    geo.setAttribute("skinWeight", new THREE.BufferAttribute(new Float32Array([
+      1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+    ]), 4));
+    const bone = new THREE.Bone();
+    const mesh = new THREE.SkinnedMesh(geo, new THREE.MeshStandardMaterial());
+    mesh.add(bone);
+    mesh.updateMatrixWorld(true);
+    mesh.bind(new THREE.Skeleton([bone]));
+    const root = new THREE.Group();
+    root.add(mesh);
+    root.updateMatrixWorld(true);
+    const rig: Rig = { root, joints: new Map(), height: 1, hipHeight: 1, markers: new Map() };
+    return { rig, bone };
+  }
+
+  it("Box3 非 precise 分支对 SkinnedMesh 会缓存绑定姿态盒，不跟着姿势更新", () => {
+    const { rig, bone } = skinnedRig();
+    // 先算一次（绑定姿态）→ SkinnedMesh.boundingBox 被填上并缓存
+    const bindMin = new THREE.Box3().setFromObject(rig.root).min.y;
+    bone.rotation.z = THREE.MathUtils.degToRad(-45); // 竖条斜过去，最低点下探
+    rig.root.updateMatrixWorld(true);
+
+    const staleMin = new THREE.Box3().setFromObject(rig.root).min.y;
+    const posedMin = new THREE.Box3().setFromObject(rig.root, true).min.y;
+    expect(staleMin).toBeCloseTo(bindMin, 5); // 旧的「最低点」纹丝不动
+    expect(posedMin).toBeLessThan(bindMin - 0.1); // 真实蒙皮最低点已经下去了
+  });
+
+  it("autoGroundRig 按蒙皮后的最低点贴地（绕开那份缓存）", () => {
+    const { rig, bone } = skinnedRig();
+    new THREE.Box3().setFromObject(rig.root); // 埋下绑定姿态缓存
+    bone.rotation.z = THREE.MathUtils.degToRad(-45);
+
+    autoGroundRig(rig, 0);
+
+    expect(new THREE.Box3().setFromObject(rig.root, true).min.y).toBeCloseTo(0, 2);
+  });
+
+  it("elevation 生效：贴到台面上而不是地面", () => {
+    const { rig, bone } = skinnedRig();
+    bone.rotation.z = THREE.MathUtils.degToRad(-30);
+
+    autoGroundRig(rig, 0.8);
+
+    expect(new THREE.Box3().setFromObject(rig.root, true).min.y).toBeCloseTo(0.8, 2);
+  });
+});

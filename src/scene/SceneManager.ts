@@ -442,7 +442,7 @@ export class SceneManager {
   }
 
   /** 点选用：从 mesh 往上找 entity 标记 */
-  findEntity(obj: THREE.Object3D | null): { type: "actor" | "prop" | "camera"; id: string } | null {
+  findEntity(obj: THREE.Object3D | null): { type: "actor" | "prop" | "light" | "camera"; id: string } | null {
     let cur: THREE.Object3D | null = obj;
     while (cur) {
       if (cur.userData.entity) return cur.userData.entity;
@@ -451,8 +451,9 @@ export class SceneManager {
     return null;
   }
 
-  groupOf(type: "actor" | "prop", id: string): THREE.Object3D | null {
+  groupOf(type: "actor" | "prop" | "light", id: string): THREE.Object3D | null {
     if (type === "actor") return this.actors.get(id)?.group ?? null;
+    if (type === "light") return this.lights.get(id)?.gizmo ?? null;
     return this.props.get(id)?.group ?? null;
   }
 

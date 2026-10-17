@@ -201,9 +201,43 @@ export function mirrorPose(pose: Pose): Pose {
 export function autoGroundRig(rig: Rig, elevation = 0): void {
   rig.root.position.y = rig.hipHeight;
   rig.root.updateMatrixWorld(true);
+  const posed = lowestPosedY(rig.root);
+  if (posed !== null) {
+    rig.root.position.y += elevation - posed;
+    rig.root.updateMatrixWorld(true);
+    return;
+  }
   const box = new THREE.Box3().setFromObject(rig.root);
   rig.root.position.y += elevation - box.min.y;
 }
+
+/**
+ * 摆完姿势后实际的最高点最低 y（世界坐标）。木头人是普通 Mesh，Box3 就够；
+ * 但 SkinnedMesh 的 geometry.boundingBox 是**绑定姿态**的，Box3.setFromObject 默认不采样蒙皮，
+ * 于是坐/跪/躺的人会按「站立时的脚印」落地 → 整体浮空或穿地。
+ * 全量扫 10 万顶点约 90ms（滑块拖不动），按步长抽样即可，脚底这类平面误差可忽略。
+ * @returns 有蒙皮网格时返回最低 y，否则 null（调用方回落到 Box3）
+ */
+function lowestPosedY(root: THREE.Object3D): number | null {
+  let min: number | null = null;
+  const v = new THREE.Vector3();
+  root.traverse((o) => {
+    const sm = o as THREE.SkinnedMesh;
+    if (!sm.isSkinnedMesh || typeof sm.getVertexPosition !== "function") return;
+    const count = sm.geometry?.attributes?.position?.count ?? 0;
+    if (count === 0) return;
+    const stride = Math.max(1, Math.floor(count / SAMPLES_PER_MESH));
+    for (let i = 0; i < count; i += stride) {
+      sm.getVertexPosition(i, v); // 已含蒙皮，落在网格局部坐标系
+      v.applyMatrix4(sm.matrixWorld);
+      if (min === null || v.y < min) min = v.y;
+    }
+  });
+  return min;
+}
+
+/** 每个蒙皮网格抽样的顶点数上限（≈ 8ms / 10 万顶点） */
+const SAMPLES_PER_MESH = 4000;
 
 /** 构建期调用：从静止姿态读出各关节的 restLocal / R（GLTF 复用） */
 export function computeRestFrames(

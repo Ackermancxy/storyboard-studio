@@ -9,6 +9,10 @@ export function initKeyboard(
     setMode: (m: "translate" | "rotate") => void;
     toggleView: () => void;
     toggleTop: () => void;
+    frameAll: () => void;
+    toggleFly: (target: "view" | "shot" | "selected") => void;
+    exitFly: () => void;
+    isFlying: () => boolean;
   },
 ): void {
   window.addEventListener("keydown", (e) => {
@@ -31,9 +35,26 @@ export function initKeyboard(
       duplicateSelected(store);
       return;
     }
+    // F 视图相机 / V 机位相机 / X 选中对象（再按同键或 Esc 退出）
+    const flyKey = e.key.toLowerCase();
+    if (!e.altKey && (flyKey === "f" || flyKey === "v" || flyKey === "x")) {
+      e.preventDefault();
+      hooks.toggleFly(flyKey === "f" ? "view" : flyKey === "v" ? "shot" : "selected");
+      return;
+    }
+    if (e.key === "Escape" && hooks.isFlying()) {
+      hooks.exitFly();
+      return;
+    }
+    // 飞行中：移动键归飞行器，别抢 W/E 的 gizmo 切换与空格等
+    if (hooks.isFlying()) {
+      const k = e.key.toLowerCase();
+      if (["w", "a", "s", "d", "q", "e", "c", " "].includes(k)) return;
+    }
     switch (e.key) {
       case "Tab": e.preventDefault(); hooks.toggleView(); break;
       case "t": case "T": hooks.toggleTop(); break;
+      case "Home": e.preventDefault(); hooks.frameAll(); break;
       case "w": case "W": hooks.setMode("translate"); break;
       case "e": case "E": hooks.setMode("rotate"); break;
       case "?": case "/": showHelpModal(); break;
