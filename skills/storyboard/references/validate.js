@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 分镜 JSON 校验器：node validate.mjs <file.json>
+// 分镜 JSON 校验器：node validate.js <file.json>
 // 检查模型/预设/景别/灯角色/关节范围/subject 引用/id 重复。无依赖，纯 Node。
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -64,7 +64,7 @@ const chars = new Set(manifest.characters.length ? manifest.characters.map(c => 
 const propIds = new Set(manifest.props.length ? manifest.props.map(p => p.id) : ["chair","stool","table","sofa","bed","box","wall","backdrop","door","window","stairs","tree","car","umbrella","light_stand"]);
 
 const file = process.argv[2];
-if (!file) { console.error("用法: node validate.mjs <file.storyboard.json>"); process.exit(2); }
+if (!file) { console.error("用法: node validate.js <file.storyboard.json>"); process.exit(2); }
 const d = JSON.parse(readFileSync(file, "utf-8"));
 const errors = [];
 const warnings = [];
