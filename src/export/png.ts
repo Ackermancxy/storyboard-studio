@@ -85,8 +85,10 @@ export async function exportContactSheet(
   const off = new OffscreenRenderer(scene, sm);
   const project = store.project;
   const cellImages: string[] = [];
+  // 格子图按项目画幅渲染（写死 640×400 会让竖画幅/3:2 的取景被拉伸裁切）
+  const dims = aspectDims(aspectValue(project.aspect), 640);
   for (let i = 0; i < project.shots.length; i++) {
-    cellImages.push(off.renderShot(project, i, 640, 400));
+    cellImages.push(off.renderShot(project, i, dims.w, dims.h));
   }
   off.restore(store);
 
@@ -124,7 +126,10 @@ async function drawSheetPage(
   const gap = 18;
   const cellW = (SHEET_W - margin * 2 - gap) / COLS;
   const cellH = (SHEET_H - headerH - margin - gap * (ROWS - 1)) / ROWS;
-  const imgH = cellW * (400 / 640);
+  // 每格下方要留说明文字（标题 + 描述 + 备注），图片只能占剩下高度。
+  // 原实现按 cellW×0.625 算图片高度，362 高的格子里塞了 515 高的图，
+  // 压到下一格并把文字整个挤出页面（导出的分镜表从来没有文字）。
+  const textH = 96;
 
   for (let c = 0; c < COLS * ROWS; c++) {
     const idx = page * perPage + c;
@@ -137,18 +142,28 @@ async function drawSheetPage(
 
     const img = new Image();
     img.src = cellImages[idx];
+    let imgW = cellW;
+    let imgH = cellW / 1.5;
     try {
       await img.decode();
-      ctx.drawImage(img, x, y, cellW, imgH);
+      const ar = img.naturalWidth / img.naturalHeight || 1.5;
+      imgW = cellW;
+      imgH = imgW / ar;
+      const maxH = Math.max(120, cellH - textH);
+      if (imgH > maxH) {
+        imgH = maxH;
+        imgW = imgH * ar;
+      }
+      ctx.drawImage(img, x + (cellW - imgW) / 2, y, imgW, imgH);
     } catch {
       ctx.fillStyle = "#eee";
       ctx.fillRect(x, y, cellW, imgH);
     }
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(x, y, cellW, imgH);
+    ctx.strokeRect(x + (cellW - imgW) / 2, y, imgW, imgH);
 
-    drawShotText(ctx, shot, x, y + imgH + 6, cellW, cellH - imgH - 8);
+    drawShotText(ctx, shot, x, y + imgH + 8, cellW, cellH - imgH - 10);
   }
 }
 
@@ -170,14 +185,14 @@ function drawShotText(
   ctx.font = `14px ${FONT}`;
   ctx.fillStyle = "#333";
   let cy = y + 40;
-  for (const line of wrapText(ctx, shot.description ?? "", w, 3)) {
+  for (const line of wrapText(ctx, shot.description ?? "", w, 2)) {
     ctx.fillText(line, x, cy, w);
     cy += 19;
     if (cy > y + h - 6) return;
   }
   if (shot.notes) {
     ctx.fillStyle = "#8a6d1a";
-    for (const line of wrapText(ctx, `备注：${shot.notes}`, w, 2)) {
+    for (const line of wrapText(ctx, `备注：${shot.notes}`, w, 1)) {
       ctx.fillText(line, x, cy, w);
       cy += 19;
       if (cy > y + h - 6) return;
