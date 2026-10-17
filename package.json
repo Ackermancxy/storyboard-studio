@@ -1,12 +1,27 @@
 {
-  "name": "storyboard",
+  "name": "storyboard-studio",
+  "version": "1.0.0",
+  "description": "JSON-first 3D storyboard editor for photographers, with an agent skill",
   "private": true,
-  "version": "0.0.1",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ackermancxy/storyboard-studio.git"
+  },
+  "homepage": "https://github.com/Ackermancxy/storyboard-studio#readme",
+  "bugs": {
+    "url": "https://github.com/Ackermancxy/storyboard-studio/issues"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "start": "node serve.mjs 5219 dist",
+    "setup": "node scripts/install.mjs",
     "check": "tsc --noEmit && vitest run"
   },
   "dependencies": {

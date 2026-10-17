@@ -7,19 +7,20 @@ import { openProjectFile, saveProjectFile, copyText } from "../export/files";
 import { buildAiPrompt, buildAiRevisePrompt } from "../ai/prompt";
 import { showImportModal } from "./modals";
 import { normalizeProject } from "../state/normalize";
-import { getManifest } from "../scene/assets";
+import { modelLists } from "../scene/assets";
 
 export interface ToolbarHooks {
   toggleOverlay?: () => void;
   exportPng?: (withOverlay: boolean) => void;
   exportSheet?: () => void;
+  exportSheetCSV?: () => void;
   exportLightMap?: () => void;
   switchView?: () => void;
 }
 
 export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => void } {
   const $ = (id: string): HTMLButtonElement => document.getElementById(id) as HTMLButtonElement;
-  for (const id of ["btn-new", "btn-open", "btn-save", "btn-import", "btn-prompt", "btn-undo", "btn-redo", "btn-png", "btn-sheet", "btn-lightmap", "btn-view"]) {
+  for (const id of ["btn-new", "btn-open", "btn-save", "btn-import", "btn-prompt", "btn-undo", "btn-redo", "btn-png", "btn-sheet", "btn-sheet-csv", "btn-lightmap", "btn-view"]) {
     $(id).disabled = false;
   }
 
@@ -30,11 +31,7 @@ export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => 
   $("btn-open").addEventListener("click", () => {
     openProjectFile()
       .then((raw) => {
-        const models = {
-          characters: getManifest().characters.map((c) => c.id),
-          props: getManifest().props.map((p) => p.id),
-        };
-        const { project, warnings } = normalizeProject(raw, models);
+        const { project, warnings } = normalizeProject(raw, modelLists());
         if (warnings.length > 0 && !window.confirm(`文件有 ${warnings.length} 处已自动修正：\n${warnings.slice(0, 8).join("\n")}\n\n继续打开？`)) {
           return;
         }
@@ -63,6 +60,7 @@ export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => 
     hooks.exportPng?.(!(e as MouseEvent).shiftKey); // Shift = 不带辅助线
   });
   $("btn-sheet").addEventListener("click", () => hooks.exportSheet?.());
+  $("btn-sheet-csv").addEventListener("click", () => hooks.exportSheetCSV?.());
   $("btn-lightmap").addEventListener("click", () => hooks.exportLightMap?.());
   $("btn-view").addEventListener("click", () => hooks.switchView?.());
 

@@ -1,0 +1,2764 @@
+{
+ "version": 1,
+ "title": "放学后不想回家",
+ "aspect": "3:2",
+ "sensor": "FF",
+ "shots": [
+  {
+   "id": "S01",
+   "name": "空教室 · 建立",
+   "description": "下课铃过去很久，教室只剩她一个人。高机位广角把整排空课桌收进画面，她坐在窗边最后一排，侧脸朝窗。人放在右三分线，左侧大片空桌椅和黑板说明“人都走了”。主色：夕阳橙 + 制服藏青。",
+   "notes": "17:20 前后，太阳低于 20°，斜光穿窗在地板拉出窗格影。曝光以窗光照亮的桌面为准，-0.7EV 保住窗外高光。24mm f/5.6，机位站到教室前门对角的课桌上。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "WS",
+    "focalLength": 24,
+    "azimuth": 35,
+    "angle": "high",
+    "placement": "right-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      -1.1,
+      0
+     ],
+     "facing": 0,
+     "elevation": 0,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "sit_chair",
+      "joints": {
+       "chest": {
+        "twist": 10
+       },
+       "neck": {
+        "turn": 20
+       },
+       "head": {
+        "turn": 40
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "wall",
+     "label": "窗下墙",
+     "position": [
+      -1.95,
+      1
+     ],
+     "facing": 90,
+     "size": [
+      7,
+      0.9,
+      0.12
+     ],
+     "color": "#d8d0bc"
+    },
+    {
+     "id": "P2",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      -1.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P3",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      0.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P4",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      1.6
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P5",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      3
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P6",
+     "model": "wall",
+     "label": "前墙",
+     "position": [
+      0,
+      4.35
+     ],
+     "facing": 0,
+     "size": [
+      7,
+      3,
+      0.12
+     ],
+     "color": "#e4dccb"
+    },
+    {
+     "id": "P7",
+     "model": "blackboard",
+     "label": "黑板",
+     "position": [
+      0.2,
+      4.2
+     ],
+     "facing": 180,
+     "size": [
+      3.2,
+      1.2,
+      0.12
+     ]
+    },
+    {
+     "id": "P8",
+     "model": "locker",
+     "label": "后排储物柜",
+     "position": [
+      0.8,
+      -2
+     ],
+     "facing": 0,
+     "size": [
+      2.4,
+      1.1,
+      0.45
+     ]
+    },
+    {
+     "id": "P9",
+     "model": "desk",
+     "label": "她的课桌",
+     "position": [
+      -1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "chair",
+     "label": "她的椅子",
+     "position": [
+      -1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P11",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P12",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P13",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P14",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P15",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P16",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P17",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P18",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P19",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P20",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P21",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P22",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P23",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P24",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P25",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P26",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      2.2
+     ],
+     "facing": 0
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "hard",
+     "azimuth": -80,
+     "elevation": 18,
+     "intensity": 1.3,
+     "colorTemp": 3300,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "fill",
+     "type": "soft",
+     "azimuth": 40,
+     "elevation": 20,
+     "intensity": 0.35,
+     "colorTemp": 5600,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.3,
+     "colorTemp": 6000,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-sunset",
+    "ground": "wood"
+   }
+  },
+  {
+   "id": "S02",
+   "name": "托腮望窗",
+   "description": "近景。她右手托腮，肘支在课桌上，视线越过镜头右侧望向窗外。窗光从她右侧打来做侧光，脸一半亮一半落进阴影。人放右三分线，左侧留出视线空间。",
+   "notes": "85mm f/1.8，焦点对近窗那只眼。窗光是唯一主光，暗部用白色课本或白桌面自然补，不另打灯。头发要拨到耳后，免得挡住托腮的手。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "MCU",
+    "focalLength": 85,
+    "azimuth": -25,
+    "angle": "eye",
+    "placement": "right-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      -1.1,
+      0
+     ],
+     "facing": 0,
+     "elevation": 0,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "sit_chair",
+      "joints": {
+       "spine": {
+        "bend": 14
+       },
+       "chest": {
+        "bend": 6
+       },
+       "upperArm_R": {
+        "pitch": 29,
+        "yaw": -57,
+        "twist": 72
+       },
+       "lowerArm_R": {
+        "bend": 150
+       },
+       "hand_R": {
+        "bend": 55
+       },
+       "upperArm_L": {
+        "pitch": 40,
+        "yaw": 10
+       },
+       "lowerArm_L": {
+        "bend": 80
+       },
+       "head": {
+        "turn": 45,
+        "tilt": 7
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "wall",
+     "label": "窗下墙",
+     "position": [
+      -1.95,
+      1
+     ],
+     "facing": 90,
+     "size": [
+      7,
+      0.9,
+      0.12
+     ],
+     "color": "#d8d0bc"
+    },
+    {
+     "id": "P2",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      -1.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P3",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      0.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P4",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      1.6
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P5",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      3
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P6",
+     "model": "wall",
+     "label": "前墙",
+     "position": [
+      0,
+      4.35
+     ],
+     "facing": 0,
+     "size": [
+      7,
+      3,
+      0.12
+     ],
+     "color": "#e4dccb"
+    },
+    {
+     "id": "P7",
+     "model": "blackboard",
+     "label": "黑板",
+     "position": [
+      0.2,
+      4.2
+     ],
+     "facing": 180,
+     "size": [
+      3.2,
+      1.2,
+      0.12
+     ]
+    },
+    {
+     "id": "P8",
+     "model": "locker",
+     "label": "后排储物柜",
+     "position": [
+      0.8,
+      -2
+     ],
+     "facing": 0,
+     "size": [
+      2.4,
+      1.1,
+      0.45
+     ]
+    },
+    {
+     "id": "P9",
+     "model": "desk",
+     "label": "她的课桌",
+     "position": [
+      -1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "chair",
+     "label": "她的椅子",
+     "position": [
+      -1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P11",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P12",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P13",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P14",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P15",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P16",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P17",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P18",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P19",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P20",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P21",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P22",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P23",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P24",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P25",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P26",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      2.2
+     ],
+     "facing": 0
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "hard",
+     "azimuth": -80,
+     "elevation": 18,
+     "intensity": 1.3,
+     "colorTemp": 3300,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "fill",
+     "type": "soft",
+     "azimuth": 40,
+     "elevation": 20,
+     "intensity": 0.35,
+     "colorTemp": 5600,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.3,
+     "colorTemp": 6000,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-sunset",
+    "ground": "wood"
+   }
+  },
+  {
+   "id": "S03",
+   "name": "窗前回眸",
+   "description": "她起身拎包走到窗前，背对教室，听见声音回头，从右肩上方看回来。镜头在她右后方，窗在她身前，所以对机位是逆光：头发和肩线镶一圈金边，脸靠室内反光托着。",
+   "notes": "50mm f/2，逆光要加遮光罩防眩光。测光点测脸，+1EV，允许窗外过曝。回头要在动作中途抓拍：转到一半时眼神最自然，连拍 5 张以上。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "MS",
+    "focalLength": 50,
+    "azimuth": -115,
+    "angle": "eye",
+    "placement": "left-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      -1.5,
+      -1.1
+     ],
+     "facing": -90,
+     "elevation": 0,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "look_back",
+      "joints": {
+       "upperArm_R": {
+        "pitch": 8,
+        "yaw": 68
+       },
+       "lowerArm_R": {
+        "bend": 22
+       },
+       "hand_R": {
+        "bend": 18
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "wall",
+     "label": "窗下墙",
+     "position": [
+      -1.95,
+      1
+     ],
+     "facing": 90,
+     "size": [
+      7,
+      0.9,
+      0.12
+     ],
+     "color": "#d8d0bc"
+    },
+    {
+     "id": "P2",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      -1.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P3",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      0.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P4",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      1.6
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P5",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      3
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P6",
+     "model": "wall",
+     "label": "前墙",
+     "position": [
+      0,
+      4.35
+     ],
+     "facing": 0,
+     "size": [
+      7,
+      3,
+      0.12
+     ],
+     "color": "#e4dccb"
+    },
+    {
+     "id": "P7",
+     "model": "blackboard",
+     "label": "黑板",
+     "position": [
+      0.2,
+      4.2
+     ],
+     "facing": 180,
+     "size": [
+      3.2,
+      1.2,
+      0.12
+     ]
+    },
+    {
+     "id": "P8",
+     "model": "locker",
+     "label": "后排储物柜",
+     "position": [
+      0.8,
+      -2
+     ],
+     "facing": 0,
+     "size": [
+      2.4,
+      1.1,
+      0.45
+     ]
+    },
+    {
+     "id": "P9",
+     "model": "desk",
+     "label": "她的课桌",
+     "position": [
+      -1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "chair",
+     "label": "她的椅子",
+     "position": [
+      -1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P11",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P12",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P13",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P14",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P15",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P16",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P17",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P18",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P19",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P20",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P21",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P22",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P23",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P24",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P25",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P26",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      2.2
+     ],
+     "facing": 0
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "hard",
+     "azimuth": 10,
+     "elevation": 15,
+     "intensity": 1.4,
+     "colorTemp": 3200,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "fill",
+     "type": "soft",
+     "azimuth": -120,
+     "elevation": 15,
+     "intensity": 0.4,
+     "colorTemp": 5600,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.3,
+     "colorTemp": 6000,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-sunset",
+    "ground": "wood"
+   }
+  },
+  {
+   "id": "S04",
+   "name": "空座位（空镜）",
+   "description": "人已经走了。这张是组里的“意外”：没有人物，只有拉开的椅子、桌上落下的书包和窗格光影。贴近桌面的低机位，让桌面占画面下半，光斑落在书包上。",
+   "notes": "35mm f/2.8，机位贴桌面高度。书包是伏笔：下一张站台她手里没有书包，留给观者去想。窗格光影会移动，3–5 分钟就变形，要先拍这张。",
+   "duration": 3,
+   "camera": {
+    "mode": "manual",
+    "focalLength": 35,
+    "position": [
+     0.35,
+     0.98,
+     1.35
+    ],
+    "target": [
+     -1.15,
+     0.82,
+     0.3
+    ]
+   },
+   "actors": [],
+   "props": [
+    {
+     "id": "P1",
+     "model": "wall",
+     "label": "窗下墙",
+     "position": [
+      -1.95,
+      1
+     ],
+     "facing": 90,
+     "size": [
+      7,
+      0.9,
+      0.12
+     ],
+     "color": "#d8d0bc"
+    },
+    {
+     "id": "P2",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      -1.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P3",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      0.2
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P4",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      1.6
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P5",
+     "model": "window",
+     "label": "窗",
+     "position": [
+      -1.95,
+      3
+     ],
+     "facing": 90,
+     "color": "#c8ccc4"
+    },
+    {
+     "id": "P6",
+     "model": "wall",
+     "label": "前墙",
+     "position": [
+      0,
+      4.35
+     ],
+     "facing": 0,
+     "size": [
+      7,
+      3,
+      0.12
+     ],
+     "color": "#e4dccb"
+    },
+    {
+     "id": "P7",
+     "model": "blackboard",
+     "label": "黑板",
+     "position": [
+      0.2,
+      4.2
+     ],
+     "facing": 180,
+     "size": [
+      3.2,
+      1.2,
+      0.12
+     ]
+    },
+    {
+     "id": "P8",
+     "model": "locker",
+     "label": "后排储物柜",
+     "position": [
+      0.8,
+      -2
+     ],
+     "facing": 0,
+     "size": [
+      2.4,
+      1.1,
+      0.45
+     ]
+    },
+    {
+     "id": "P9",
+     "model": "desk",
+     "label": "她的课桌",
+     "position": [
+      -1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "chair",
+     "label": "她的椅子（拉开）",
+     "position": [
+      -1.02,
+      -0.18
+     ],
+     "facing": 18
+    },
+    {
+     "id": "P11",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P12",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P13",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      0.42
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P14",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P15",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P16",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P17",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P18",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P19",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      1.52
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P20",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      1.1
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P21",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      -1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P22",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      -1.1,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P23",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      0,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P24",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      0,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P25",
+     "model": "desk",
+     "label": "课桌",
+     "position": [
+      1.1,
+      2.62
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P26",
+     "model": "chair",
+     "label": "椅",
+     "position": [
+      1.1,
+      2.2
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P27",
+     "model": "box",
+     "label": "书包",
+     "position": [
+      -1.15,
+      0.45
+     ],
+     "elevation": 0.78,
+     "size": [
+      0.36,
+      0.27,
+      0.13
+     ],
+     "facing": -10,
+     "color": "#3a2e28"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "hard",
+     "azimuth": -80,
+     "elevation": 18,
+     "intensity": 1.3,
+     "colorTemp": 3300
+    },
+    {
+     "id": "L2",
+     "role": "fill",
+     "type": "soft",
+     "azimuth": 40,
+     "elevation": 20,
+     "intensity": 0.3,
+     "colorTemp": 5600
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.3,
+     "colorTemp": 6000
+    }
+   ],
+   "environment": {
+    "sky": "clear-sunset",
+    "ground": "wood"
+   }
+  },
+  {
+   "id": "S05",
+   "name": "站台 · 等车",
+   "description": "换场到傍晚的车站。机位压在站台的一头，黄线和站台边沿一路收向远处，她站在线后侧头望向电车来的方向，也就是镜头这边。人放右三分线，左边留给轨道、电线和渐暗的天空。",
+   "notes": "18:00 日落后 10 分钟，天空还有余光，色温约 7500K，白平衡锁 5000K 让天空偏蓝。35mm f/4，机位放低到约 0.8m。注意站台安全，不越黄线。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "WS",
+    "focalLength": 35,
+    "azimuth": 95,
+    "angle": "eye",
+    "placement": "right-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      0.5,
+      -0.7
+     ],
+     "facing": 180,
+     "elevation": 1.1,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "stand_relaxed",
+      "joints": {
+       "chest": {
+        "twist": -10
+       },
+       "neck": {
+        "turn": -20
+       },
+       "head": {
+        "turn": -35
+       },
+       "upperArm_R": {
+        "pitch": 8,
+        "yaw": 68
+       },
+       "lowerArm_R": {
+        "bend": 22
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "platform",
+     "label": "站台",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0,
+     "size": [
+      14,
+      1.1,
+      3
+     ]
+    },
+    {
+     "id": "P2",
+     "model": "rail_track",
+     "label": "轨道",
+     "position": [
+      0,
+      -2.6
+     ],
+     "facing": 90,
+     "size": [
+      2,
+      0.18,
+      20
+     ]
+    },
+    {
+     "id": "P3",
+     "model": "bench",
+     "label": "长椅",
+     "position": [
+      2,
+      0.3
+     ],
+     "elevation": 1.1,
+     "facing": 180
+    },
+    {
+     "id": "P4",
+     "model": "awning",
+     "label": "雨棚",
+     "position": [
+      2,
+      0.5
+     ],
+     "elevation": 1.1,
+     "facing": 180,
+     "size": [
+      3.4,
+      2.5,
+      1.6
+     ]
+    },
+    {
+     "id": "P5",
+     "model": "vending_machine",
+     "label": "贩卖机",
+     "position": [
+      3.05,
+      0.9
+     ],
+     "elevation": 1.1,
+     "facing": -90
+    },
+    {
+     "id": "P6",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      -6,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P7",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      0,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P8",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      6,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P9",
+     "model": "telephone_pole",
+     "label": "站台后电线杆",
+     "position": [
+      -4,
+      2.3
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "telephone_pole",
+     "label": "站台后电线杆",
+     "position": [
+      3,
+      2.3
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P11",
+     "model": "building",
+     "label": "远处住宅楼",
+     "position": [
+      -6,
+      -14
+     ],
+     "facing": 0,
+     "size": [
+      8,
+      10,
+      6
+     ],
+     "color": "#6a6e78"
+    },
+    {
+     "id": "P12",
+     "model": "building",
+     "label": "远处住宅楼",
+     "position": [
+      7,
+      -16
+     ],
+     "facing": 0,
+     "size": [
+      10,
+      14,
+      6
+     ],
+     "color": "#5e626c"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "soft",
+     "azimuth": 20,
+     "elevation": 30,
+     "intensity": 0.6,
+     "colorTemp": 7500,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "rim",
+     "type": "hard",
+     "azimuth": 165,
+     "elevation": 12,
+     "intensity": 0.7,
+     "colorTemp": 2800,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.35,
+     "colorTemp": 8000,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-dusk",
+    "ground": "asphalt"
+   }
+  },
+  {
+   "id": "S06",
+   "name": "长椅 · 低头",
+   "description": "她坐在雨棚下的长椅上低头看手机。画面右缘是自动贩卖机，冷白的面板光打亮她右脸，和天空的暮蓝连成一片冷色，只有红领结是唯一的暖点。",
+   "notes": "50mm f/1.8，ISO 1600。贩卖机就是主光，白平衡锁 4800K，让它保持冷白。手机屏幕亮度调低，避免脸下方出现第二个光源。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "MLS",
+    "focalLength": 50,
+    "azimuth": -35,
+    "angle": "eye",
+    "placement": "left-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      2,
+      0.3
+     ],
+     "facing": 180,
+     "elevation": 1.1,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "sit_chair",
+      "joints": {
+       "spine": {
+        "bend": 12
+       },
+       "head": {
+        "nod": 28
+       },
+       "neck": {
+        "nod": 8
+       },
+       "upperArm_L": {
+        "pitch": 22,
+        "yaw": -5
+       },
+       "upperArm_R": {
+        "pitch": 22,
+        "yaw": -5
+       },
+       "lowerArm_L": {
+        "bend": 78
+       },
+       "lowerArm_R": {
+        "bend": 78
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "platform",
+     "label": "站台",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0,
+     "size": [
+      14,
+      1.1,
+      3
+     ]
+    },
+    {
+     "id": "P2",
+     "model": "rail_track",
+     "label": "轨道",
+     "position": [
+      0,
+      -2.6
+     ],
+     "facing": 90,
+     "size": [
+      2,
+      0.18,
+      20
+     ]
+    },
+    {
+     "id": "P3",
+     "model": "bench",
+     "label": "长椅",
+     "position": [
+      2,
+      0.3
+     ],
+     "elevation": 1.1,
+     "facing": 180
+    },
+    {
+     "id": "P4",
+     "model": "awning",
+     "label": "雨棚",
+     "position": [
+      2,
+      0.5
+     ],
+     "elevation": 1.1,
+     "facing": 180,
+     "size": [
+      3.4,
+      2.5,
+      1.6
+     ]
+    },
+    {
+     "id": "P5",
+     "model": "vending_machine",
+     "label": "贩卖机",
+     "position": [
+      3.05,
+      0.9
+     ],
+     "elevation": 1.1,
+     "facing": -90
+    },
+    {
+     "id": "P6",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      -6,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P7",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      0,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P8",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      6,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P9",
+     "model": "telephone_pole",
+     "label": "站台后电线杆",
+     "position": [
+      -4,
+      2.3
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "telephone_pole",
+     "label": "站台后电线杆",
+     "position": [
+      3,
+      2.3
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P11",
+     "model": "building",
+     "label": "远处住宅楼",
+     "position": [
+      -6,
+      -14
+     ],
+     "facing": 0,
+     "size": [
+      8,
+      10,
+      6
+     ],
+     "color": "#6a6e78"
+    },
+    {
+     "id": "P12",
+     "model": "building",
+     "label": "远处住宅楼",
+     "position": [
+      7,
+      -16
+     ],
+     "facing": 0,
+     "size": [
+      10,
+      14,
+      6
+     ],
+     "color": "#5e626c"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "practical",
+     "type": "soft",
+     "azimuth": -80,
+     "elevation": 5,
+     "intensity": 0.8,
+     "colorTemp": 6500,
+     "subject": "A",
+     "distance": 1.1
+    },
+    {
+     "id": "L2",
+     "role": "key",
+     "type": "soft",
+     "azimuth": 20,
+     "elevation": 30,
+     "intensity": 0.4,
+     "colorTemp": 7500,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "rim",
+     "type": "soft",
+     "azimuth": 160,
+     "elevation": 50,
+     "intensity": 0.4,
+     "colorTemp": 4500,
+     "subject": "A"
+    },
+    {
+     "id": "L4",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.3,
+     "colorTemp": 8000,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-dusk",
+    "ground": "asphalt"
+   }
+  },
+  {
+   "id": "S07",
+   "name": "仰望电线",
+   "description": "她走到雨棚外，仰头看天。广角低机位从她身前往上仰拍，身后站台的电线杆和电线把暮色天空切成几块，人像是被线条框住。视线向上、不看镜头。",
+   "notes": "24mm f/4，机位在她胸前下方约 0.5m，仰角 45°。天空是背景，按天空测光后 +0.7EV，让脸不至于全黑。电线要与画面边缘斜交，不能水平。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "MS",
+    "focalLength": 24,
+    "azimuth": 25,
+    "angle": "worm",
+    "placement": "center"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      -1.5,
+      -0.4
+     ],
+     "facing": 180,
+     "elevation": 1.1,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "look_up",
+      "joints": {
+       "head": {
+        "nod": -30,
+        "turn": -10
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "platform",
+     "label": "站台",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0,
+     "size": [
+      14,
+      1.1,
+      3
+     ]
+    },
+    {
+     "id": "P2",
+     "model": "rail_track",
+     "label": "轨道",
+     "position": [
+      0,
+      -2.6
+     ],
+     "facing": 90,
+     "size": [
+      2,
+      0.18,
+      20
+     ]
+    },
+    {
+     "id": "P3",
+     "model": "bench",
+     "label": "长椅",
+     "position": [
+      2,
+      0.3
+     ],
+     "elevation": 1.1,
+     "facing": 180
+    },
+    {
+     "id": "P4",
+     "model": "awning",
+     "label": "雨棚",
+     "position": [
+      2,
+      0.5
+     ],
+     "elevation": 1.1,
+     "facing": 180,
+     "size": [
+      3.4,
+      2.5,
+      1.6
+     ]
+    },
+    {
+     "id": "P5",
+     "model": "vending_machine",
+     "label": "贩卖机",
+     "position": [
+      3.05,
+      0.9
+     ],
+     "elevation": 1.1,
+     "facing": -90
+    },
+    {
+     "id": "P6",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      -6,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P7",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      0,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P8",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      6,
+      -4.6
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P9",
+     "model": "telephone_pole",
+     "label": "站台后电线杆",
+     "position": [
+      -4,
+      2.3
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P10",
+     "model": "telephone_pole",
+     "label": "站台后电线杆",
+     "position": [
+      3,
+      2.3
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P11",
+     "model": "building",
+     "label": "远处住宅楼",
+     "position": [
+      -6,
+      -14
+     ],
+     "facing": 0,
+     "size": [
+      8,
+      10,
+      6
+     ],
+     "color": "#6a6e78"
+    },
+    {
+     "id": "P12",
+     "model": "building",
+     "label": "远处住宅楼",
+     "position": [
+      7,
+      -16
+     ],
+     "facing": 0,
+     "size": [
+      10,
+      14,
+      6
+     ],
+     "color": "#5e626c"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.6,
+     "colorTemp": 8000,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "rim",
+     "type": "hard",
+     "azimuth": 170,
+     "elevation": 10,
+     "intensity": 0.7,
+     "colorTemp": 2800,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.3,
+     "colorTemp": 8500,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-dusk",
+    "ground": "asphalt"
+   }
+  },
+  {
+   "id": "S08",
+   "name": "踏切 · 电车驶过",
+   "description": "蓝调时刻，她站在落下的横杆后，身体侧对镜头，头转向轨道，目送电车驶过。电车用慢门拖成一道光带，铺满她身后的背景；横杆和警报柱是前景线条。动感全来自电车，人是静止的。",
+   "notes": "1/8s 慢门，上三脚架，35mm f/8。请她 2 秒内别动。踏切警报灯 1.5 秒一闪，连拍抓红灯亮的那一帧。机位在道口外的路边，不进轨道区。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "WS",
+    "focalLength": 35,
+    "azimuth": 80,
+    "angle": "eye",
+    "placement": "left-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      -1.4,
+      -2.3
+     ],
+     "facing": 90,
+     "elevation": 0,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "stand_relaxed",
+      "joints": {
+       "chest": {
+        "twist": 15
+       },
+       "neck": {
+        "turn": 20
+       },
+       "head": {
+        "turn": 40
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "rail_crossing",
+     "label": "踏切（横杆已落）",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P2",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      -4,
+      -3.2
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P3",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      4.2,
+      5.5
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P4",
+     "model": "streetlamp",
+     "label": "路灯",
+     "position": [
+      -3.6,
+      -3
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P5",
+     "model": "streetlamp",
+     "label": "对岸路灯",
+     "position": [
+      3,
+      6
+     ],
+     "facing": -90
+    },
+    {
+     "id": "P6",
+     "model": "hedge",
+     "label": "对岸树篱",
+     "position": [
+      -3,
+      6.5
+     ],
+     "facing": 0,
+     "size": [
+      5,
+      1.2,
+      0.8
+     ]
+    },
+    {
+     "id": "P7",
+     "model": "building",
+     "label": "对岸民宅",
+     "position": [
+      -2,
+      12
+     ],
+     "facing": 180,
+     "size": [
+      7,
+      6,
+      5
+     ],
+     "color": "#5a5e66"
+    },
+    {
+     "id": "P8",
+     "model": "box",
+     "label": "驶过的电车（慢门拖影）",
+     "position": [
+      0,
+      0.6
+     ],
+     "facing": 0,
+     "size": [
+      20,
+      3.2,
+      2.8
+     ],
+     "color": "#b8bec4"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "practical",
+     "type": "soft",
+     "azimuth": -153,
+     "elevation": 30,
+     "intensity": 0.9,
+     "colorTemp": 1900,
+     "subject": "A",
+     "distance": 1.3
+    },
+    {
+     "id": "L2",
+     "role": "key",
+     "type": "hard",
+     "azimuth": -60,
+     "elevation": 45,
+     "intensity": 0.5,
+     "colorTemp": 3000,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.4,
+     "colorTemp": 9000,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-dusk",
+    "ground": "asphalt"
+   }
+  },
+  {
+   "id": "S09",
+   "name": "踏切 · 回头",
+   "description": "电车过去，她转身回头看向镜头，这是整组唯一一张直视。长焦压缩背景，对岸路灯虚成暖色光斑；警报灯的红光从她右后方打在发梢上。",
+   "notes": "135mm f/2，机位仍在道口外，靠长焦拉近。焦点对眼睛。ISO 3200，快门 1/250 保证不糊。等她主动回头，不要喊“看这里”。",
+   "duration": 3,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "CU",
+    "focalLength": 135,
+    "azimuth": 85,
+    "angle": "eye",
+    "placement": "right-third"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      -1.4,
+      -2.3
+     ],
+     "facing": 90,
+     "elevation": 0,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "stand_relaxed",
+      "joints": {
+       "chest": {
+        "twist": -25
+       },
+       "neck": {
+        "turn": -25
+       },
+       "head": {
+        "turn": -40,
+        "tilt": -5
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "rail_crossing",
+     "label": "踏切（横杆已落）",
+     "position": [
+      0,
+      0
+     ],
+     "facing": 0
+    },
+    {
+     "id": "P2",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      -4,
+      -3.2
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P3",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      4.2,
+      5.5
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P4",
+     "model": "streetlamp",
+     "label": "路灯",
+     "position": [
+      -3.6,
+      -3
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P5",
+     "model": "streetlamp",
+     "label": "对岸路灯",
+     "position": [
+      3,
+      6
+     ],
+     "facing": -90
+    },
+    {
+     "id": "P6",
+     "model": "hedge",
+     "label": "对岸树篱",
+     "position": [
+      -3,
+      6.5
+     ],
+     "facing": 0,
+     "size": [
+      5,
+      1.2,
+      0.8
+     ]
+    },
+    {
+     "id": "P7",
+     "model": "building",
+     "label": "对岸民宅",
+     "position": [
+      -2,
+      12
+     ],
+     "facing": 180,
+     "size": [
+      7,
+      6,
+      5
+     ],
+     "color": "#5a5e66"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "soft",
+     "azimuth": 50,
+     "elevation": 40,
+     "intensity": 0.7,
+     "colorTemp": 3000,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "rim",
+     "type": "hard",
+     "azimuth": -150,
+     "elevation": 25,
+     "intensity": 0.8,
+     "colorTemp": 1900,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.35,
+     "colorTemp": 8500,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-dusk",
+    "ground": "asphalt"
+   }
+  },
+  {
+   "id": "S10",
+   "name": "背影 · 收束",
+   "description": "横杆抬起后，她跨过轨道往对岸走，背对镜头越走越小。两侧路灯把路面切成一段一段的暖光，铁轨横穿画面下部。组尾停在背影上，不给答案。",
+   "notes": "35mm f/5.6，三脚架，1/30s。让她走慢一点，每走两步拍一张，后期挑步伐分开最明显的那张。她走到第二盏路灯下时，背影轮廓最清楚。",
+   "duration": 4,
+   "camera": {
+    "mode": "auto",
+    "subject": "A",
+    "shotSize": "WS",
+    "focalLength": 35,
+    "azimuth": 180,
+    "angle": "eye",
+    "placement": "center"
+   },
+   "actors": [
+    {
+     "id": "A",
+     "label": "JK",
+     "model": "mikoto",
+     "position": [
+      0,
+      2
+     ],
+     "facing": 0,
+     "elevation": 0,
+     "autoGround": true,
+     "color": "#2c3550",
+     "pose": {
+      "preset": "walk",
+      "joints": {
+       "head": {
+        "nod": 8
+       }
+      }
+     },
+     "gaze": null
+    }
+   ],
+   "props": [
+    {
+     "id": "P1",
+     "model": "rail_track",
+     "label": "轨道",
+     "position": [
+      0,
+      0.6
+     ],
+     "facing": 90,
+     "size": [
+      2,
+      0.18,
+      20
+     ]
+    },
+    {
+     "id": "P2",
+     "model": "rail_track",
+     "label": "轨道",
+     "position": [
+      0,
+      3
+     ],
+     "facing": 90,
+     "size": [
+      2,
+      0.18,
+      20
+     ]
+    },
+    {
+     "id": "P3",
+     "model": "streetlamp",
+     "label": "路灯",
+     "position": [
+      -2.4,
+      6
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P4",
+     "model": "streetlamp",
+     "label": "路灯",
+     "position": [
+      2.4,
+      11
+     ],
+     "facing": -90
+    },
+    {
+     "id": "P5",
+     "model": "streetlamp",
+     "label": "路灯",
+     "position": [
+      -2.4,
+      16
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P6",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      3,
+      5
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P7",
+     "model": "telephone_pole",
+     "label": "电线杆",
+     "position": [
+      -3,
+      12
+     ],
+     "facing": 90
+    },
+    {
+     "id": "P8",
+     "model": "hedge",
+     "label": "树篱",
+     "position": [
+      -3.2,
+      9
+     ],
+     "facing": 90,
+     "size": [
+      6,
+      1.2,
+      0.8
+     ]
+    },
+    {
+     "id": "P9",
+     "model": "building",
+     "label": "民宅",
+     "position": [
+      5,
+      14
+     ],
+     "facing": -90,
+     "size": [
+      6,
+      6,
+      6
+     ],
+     "color": "#5a5e66"
+    }
+   ],
+   "lights": [
+    {
+     "id": "L1",
+     "role": "key",
+     "type": "hard",
+     "azimuth": 15,
+     "elevation": 50,
+     "intensity": 1,
+     "colorTemp": 3000,
+     "subject": "A"
+    },
+    {
+     "id": "L2",
+     "role": "fill",
+     "type": "soft",
+     "azimuth": 180,
+     "elevation": 20,
+     "intensity": 0.25,
+     "colorTemp": 8500,
+     "subject": "A"
+    },
+    {
+     "id": "L3",
+     "role": "ambient",
+     "type": "soft",
+     "azimuth": 0,
+     "elevation": 60,
+     "intensity": 0.35,
+     "colorTemp": 8500,
+     "subject": "A"
+    }
+   ],
+   "environment": {
+    "sky": "clear-night",
+    "ground": "asphalt"
+   }
+  }
+ ]
+}

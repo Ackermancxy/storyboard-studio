@@ -1,2 +1,13 @@
 node_modules/
 dist/
+.vite/
+
+# 本地私有模型与覆盖配置（不随仓库分发）
+public/assets/models/mikoto/
+public/assets/manifest.local.json
+tools/
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
+*.log

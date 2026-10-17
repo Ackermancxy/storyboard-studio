@@ -59,11 +59,15 @@ button.accent { color: var(--accent); border-color: color-mix(in srgb, var(--acc
 /* ── 镜头列表 ── */
 #shot-list { grid-area: shots; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
 #shot-items { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
-.shot-card { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: pointer; background: var(--bg); }
+.shot-card { flex: none; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: pointer; background: var(--bg); }
 .shot-card.active { border-color: var(--accent); }
 .shot-card img { display: block; width: 100%; aspect-ratio: 8/5; object-fit: cover; background: #101014; }
 .shot-label { padding: 4px 8px; font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .shot-card.active .shot-label { color: var(--text); }
+.shot-meta { padding: 0 8px 2px; font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shot-desc { padding: 0 8px 6px; font-size: 11px; color: var(--dim); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shot-card.drop-before { box-shadow: 0 -2px 0 0 var(--accent); }
+.shot-card.drop-after { box-shadow: 0 2px 0 0 var(--accent); }
 .shot-actions { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--border); }
 .shot-actions button { flex: 1; padding: 5px 4px; font-size: 12px; }
 
@@ -101,6 +105,7 @@ button.accent { color: var(--accent); border-color: color-mix(in srgb, var(--acc
 .k-prop { color: #ffd9a0; }
 .k-light { color: #ffe08a; }
 .k-camera { color: #b8ffcf; }
+.k-environment { color: #a8d8ff; }
 #obj-panel { flex: 1; overflow-y: auto; padding: 6px 4px; }
 
 /* lil-gui 深色适配 */

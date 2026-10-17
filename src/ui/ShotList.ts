@@ -2,7 +2,7 @@
 import * as THREE from "three";
 import type { Project } from "../types";
 import { nextShotId, newShot, type Store } from "../state/store";
-import { aspectValue, FILM_GAUGE } from "../scene/camera";
+import { ANGLE_ZH, aspectValue, FILM_GAUGE, SHOT_TABLE } from "../scene/camera";
 import { aspectDims } from "../export/render";
 import type { SceneManager } from "../scene/SceneManager";
 
@@ -16,6 +16,7 @@ export class ThumbService {
   private thumbs = new Map<string, string>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private busy = false;
+  private pending = false;
   /** 当前渲染画幅，跟项目走；写死宽高比会让竖画幅项目的人出框/变形 */
   private aspect = 1.6;
 
@@ -47,20 +48,24 @@ export class ThumbService {
   }
 
   private async captureAll(): Promise<void> {
-    if (this.busy) return;
+    if (this.busy) {
+      this.pending = true;
+      return;
+    }
     this.busy = true;
-    const store = currentStore;
-    const project = store.project;
-    this.helpers(false);
     try {
-      for (let i = 0; i < project.shots.length; i++) {
-        this.captureShot(project, i);
-        await new Promise((r) => setTimeout(r, 0)); // 让出主线程
-      }
+      do {
+        this.pending = false;
+        const project = currentStore.project;
+        for (let i = 0; i < project.shots.length; i++) {
+          this.captureShot(project, i);
+          // captureShot 把共享场景切到第 i 镜；让出线程前切回当前镜，否则主视口会闪成别的镜头
+          this.sm.sync(currentStore.project, currentStore.shotIndex);
+          await new Promise((r) => setTimeout(r, 0));
+        }
+      } while (this.pending);
     } finally {
-      // 恢复当前镜头的场景
-      this.sm.sync(store.project, store.shotIndex);
-      this.helpers(true);
+      this.sm.sync(currentStore.project, currentStore.shotIndex);
       this.busy = false;
     }
     this.onDone();
@@ -80,7 +85,14 @@ export class ThumbService {
       this.camera.setFocalLength(shot.camera.focalLength ?? 50);
       this.camera.updateProjectionMatrix();
     }
-    this.renderer.render(this.scene, this.camera);
+    // 只在真正渲染这一帧时藏 gizmo。之前是在整段异步捕获期间一直藏着，
+    // 缩略图多/模型大时捕获要十几秒，用户切到导演视图会看不到相机和灯位。
+    this.helpers(false);
+    try {
+      this.renderer.render(this.scene, this.camera);
+    } finally {
+      this.helpers(true);
+    }
     const url = this.renderer.domElement.toDataURL("image/jpeg", 0.72);
     this.thumbs.set(shot.id, url);
     this.onThumb(shot.id, url);
@@ -121,6 +133,10 @@ export function initShotList(
     render();
   }
 
+  function clearDropMarks(): void {
+    root.querySelectorAll(".drop-before, .drop-after").forEach((el) => el.classList.remove("drop-before", "drop-after"));
+  }
+
   function render(): void {
     root.innerHTML = "";
     store.project.shots.forEach((shot, i) => {
@@ -141,23 +157,56 @@ export function initShotList(
       label.textContent = `${shot.id} ${shot.name}`;
       card.appendChild(label);
 
+      const cam = shot.camera;
+      const meta = document.createElement("div");
+      meta.className = "shot-meta";
+      meta.textContent = [
+        cam.shotSize ? SHOT_TABLE[cam.shotSize].zh : undefined,
+        cam.angle ? ANGLE_ZH[cam.angle] : undefined,
+        `${cam.focalLength ?? 50}mm`,
+        `${shot.actors.length}人`,
+      ].filter(Boolean).join(" · ");
+      card.appendChild(meta);
+
+      if (shot.description) {
+        const desc = document.createElement("div");
+        desc.className = "shot-desc";
+        desc.textContent = shot.description;
+        desc.title = shot.description;
+        card.appendChild(desc);
+      }
+
       card.addEventListener("click", () => store.setShotIndex(i));
       card.addEventListener("dragstart", (e) => {
         e.dataTransfer?.setData("text/plain", String(i));
       });
-      card.addEventListener("dragover", (e) => e.preventDefault());
+      card.addEventListener("dragend", clearDropMarks);
+      card.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const r = card.getBoundingClientRect();
+        const after = e.clientY > r.top + r.height / 2;
+        card.classList.toggle("drop-before", !after);
+        card.classList.toggle("drop-after", after);
+      });
+      card.addEventListener("dragleave", () => card.classList.remove("drop-before", "drop-after"));
       card.addEventListener("drop", (e) => {
         e.preventDefault();
+        clearDropMarks();
         const from = parseInt(e.dataTransfer?.getData("text/plain") ?? "", 10);
-        if (!Number.isFinite(from) || from === i) return;
+        if (!Number.isFinite(from)) return;
+        const after = card.classList.contains("drop-after");
+        let to = after ? i + 1 : i;
+        if (from === to || from + 1 === to) return;
         store.transact((p) => {
           const [moved] = p.shots.splice(from, 1);
-          p.shots.splice(i, 0, moved);
+          if (from < to) to -= 1;
+          p.shots.splice(to, 0, moved);
         });
-        store.setShotIndex(i);
+        store.setShotIndex(to);
       });
       root.appendChild(card);
     });
+    root.querySelector(".shot-card.active")?.scrollIntoView({ block: "nearest" });
   }
 
   // 底部操作按钮

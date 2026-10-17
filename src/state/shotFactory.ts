@@ -28,6 +28,6 @@ export function newShot(id: string, name = "新镜头"): Shot {
     actors: [],
     props: [],
     lights: defaultLights("A"),
-    environment: { background: "#1b1b20", floor: "grid" },
+    environment: { background: "#1b1b20", floor: "grid", sky: "studio", ground: "studio" },
   };
 }

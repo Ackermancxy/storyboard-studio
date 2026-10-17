@@ -3,13 +3,14 @@
 import * as THREE from "three";
 import type { Project, Shot } from "../types";
 import { getAllPresets } from "../data/userPresets";
-import { applyPose, autoGroundRig, resolvePose, type ResolvedPose, type Rig } from "./rig";
+import { applyPose, autoGroundRig, postedBox, resolvePose, type ResolvedPose, type Rig } from "./rig";
 import { applyGaze } from "./gaze";
 import { aspectValue, cameraHudText, solveCamera, type CameraSolve } from "./camera";
 import { buildMannequin, disposeMannequin, setRigColor, type Build } from "./mannequin";
 import { buildProp } from "./props";
 import { characterDef, propDef, cloneGltf, loadGLTFTemplate, loadMMDTemplate, mmdHideTextures } from "./assets";
 import { buildGltfRig, resolveBoneMap } from "./gltfRig";
+import { EnvironmentRig } from "./environment";
 import { kelvinToRGB, lightGain, placeLight, ROLE_COLORS } from "./lights";
 import type { Selection } from "../state/store";
 
@@ -38,6 +39,8 @@ const HIGHLIGHT = 0x1e3f66;
 
 export class SceneManager {
   private actors = new Map<string, ActorEntry>();
+  /** 每个人物摆好姿势后的世界包围盒，取景用 */
+  private actorBounds = new Map<string, THREE.Box3>();
   private props = new Map<string, PropEntry>();
   private lights = new Map<string, LightEntry>();
   readonly lightGizmos = new THREE.Group(); // 导演/俯视视图可见
@@ -54,6 +57,7 @@ export class SceneManager {
   private plainFloorMat: THREE.MeshStandardMaterial;
   private shadowCatcher: THREE.Mesh;
   private baseHemi: THREE.HemisphereLight;
+  private envRig: EnvironmentRig;
 
   constructor(readonly scene: THREE.Scene) {
     this.scene.add(this.lightGizmos);
@@ -78,18 +82,24 @@ export class SceneManager {
     this.shadowCatcher.rotation.x = -Math.PI / 2;
     this.shadowCatcher.receiveShadow = true;
     scene.add(this.shadowCatcher);
+
+    this.envRig = new EnvironmentRig(scene, this.baseHemi);
   }
 
-  /** 应用镜头里的 environment：背景色 + 地面样式 */
+  /** 导演视图避障用：所有道具（墙/窗/柜子等会挡住视线的实体） */
+  propGroups(): THREE.Object3D[] {
+    return [...this.props.values()].map((e) => e.group);
+  }
+
+  /** 应用镜头里的 environment：天空/天气 + 地面预设；studio 时沿用背景色与网格地板 */
   private syncEnvironment(shot: Shot): void {
     const env = shot.environment;
     const bg = env?.background ?? "#141419";
-    (this.scene.background as THREE.Color | null)?.set?.(bg);
-    if (!this.scene.background) this.scene.background = new THREE.Color(bg);
+    const studioGround = this.envRig.apply(env);
     const floor = env?.floor ?? "grid";
-    this.gridMinor.visible = this.gridMajor.visible = floor === "grid";
-    this.plainFloor.visible = floor === "plain";
-    if (floor === "plain") {
+    this.gridMinor.visible = this.gridMajor.visible = studioGround && floor === "grid";
+    this.plainFloor.visible = studioGround && floor === "plain";
+    if (studioGround && floor === "plain") {
       // 地面色 = 背景色压暗，避免亮背景配死黑地板
       this.plainFloorMat.color.set(bg).multiplyScalar(0.45);
     }
@@ -104,14 +114,19 @@ export class SceneManager {
     };
     this.syncEnvironment(shot);
     this.syncProps(shot);
-    this.solveShotCamera(project, shot);
+    // 机位先按站姿估算一次供 gaze 使用；人摆好后用实测包围盒重解
+    this.solveShotCamera(project, shot, false);
     this.syncActors(project, shot);
+    if (shot.actors.length > 0) {
+      this.solveShotCamera(project, shot, true);
+      if (shot.actors.some((a) => a.gaze)) this.syncActors(project, shot);
+    }
     this.syncLights(shot);
     this.applyHighlight();
   }
 
   /** §7.2：auto 用求解；manual 用存的 position/target */
-  private solveShotCamera(project: Project, shot: Shot): void {
+  private solveShotCamera(project: Project, shot: Shot, measured: boolean): void {
     const aspect = aspectValue(project.aspect);
     const cam = shot.camera;
     if (cam.mode === "manual" && cam.position && cam.target) {
@@ -129,6 +144,7 @@ export class SceneManager {
         facing: a.facing,
         height: characterDef(a.model)?.height ?? 1.73,
         elevation: a.elevation ?? 0,
+        bounds: measured ? this.actorBounds.get(a.id) : undefined,
       }));
       this.cameraState = solveCamera(cam, actors, aspect);
     }
@@ -201,6 +217,7 @@ export class SceneManager {
       }
       applyPose(entry.rig, pose);
       autoGroundRig(entry.rig, actor.elevation ?? 0);
+      this.actorBounds.set(actor.id, postedBox(entry.rig.root));
     }
     for (const id of [...this.actors.keys()]) {
       if (!seen.has(id)) this.removeActor(id);
@@ -426,6 +443,7 @@ export class SceneManager {
     this.scene.remove(entry.group);
     disposeMannequin(entry.rig);
     this.actors.delete(id);
+    this.actorBounds.delete(id);
   }
   private removeProp(id: string): void {
     const entry = this.props.get(id);
@@ -478,7 +496,7 @@ export class SceneManager {
 
   setSelected(sel: Selection): void {
     this.applyHighlight();
-    if (!sel || sel.type === "camera" || sel.type === "light") return;
+    if (!sel || sel.type === "camera" || sel.type === "light" || sel.type === "environment") return;
     const group = this.groupOf(sel.type, sel.id);
     if (!group) return;
     group.traverse((o) => {

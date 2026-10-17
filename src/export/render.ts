@@ -38,6 +38,9 @@ export class OffscreenRenderer {
 
   dispose(): void {
     this.renderer.dispose();
+    // 每次导出都会新建一个 WebGLRenderer；不强制丢上下文，连续导出几次就会耗光浏览器的
+    // WebGL 上下文配额，表现为标签页崩溃。导出结束后立刻释放。
+    this.renderer.forceContextLoss();
   }
 }
 

@@ -2,6 +2,7 @@
 import type { Actor, Aspect, CameraSpec, JointName, Light, Pose, Project, Prop, Shot } from "../types";
 import { ASPECTS, JOINT_NAMES } from "../types";
 import { JOINT_LIMITS } from "../scene/rig";
+import { DEFAULT_GROUND, DEFAULT_SKY, GROUND_IDS, SKY_IDS } from "../scene/environment";
 import { newShot } from "./shotFactory";
 
 export interface NormalizeResult {
@@ -12,6 +13,8 @@ export interface NormalizeResult {
 export interface ModelLists {
   characters: string[]; // 合法 character id
   props: string[]; // 合法 prop id
+  characterNames?: ReadonlyMap<string, string>; // 显示名 → id
+  propNames?: ReadonlyMap<string, string>;
 }
 
 /* ── 第一层：从任意文本里抠出 JSON ── */
@@ -160,12 +163,16 @@ function normalizeShot(raw: unknown, index: number, models: ModelLists, warnings
   }
   shot.camera = normalizeCamera(o.camera, where, warnings);
 
-  // environment：保留背景色与地面样式（缺省用 shotFactory 默认）
+  // environment：背景色 / 地面样式 / 天空 / 地面预设（缺省用 shotFactory 默认）
   if (o.environment && typeof o.environment === "object") {
     const env = o.environment as Record<string, unknown>;
+    const sky = readPreset(env.sky, SKY_IDS, DEFAULT_SKY, `${where}：天空`, warnings);
+    const ground = readPreset(env.ground, GROUND_IDS, DEFAULT_GROUND, `${where}：地面`, warnings);
     shot.environment = {
       background: typeof env.background === "string" ? env.background : shot.environment!.background,
       floor: env.floor === "grid" || env.floor === "plain" || env.floor === "none" ? env.floor : shot.environment!.floor,
+      sky,
+      ground,
     };
   }
 
@@ -264,12 +271,34 @@ function normalizeCamera(raw: unknown, where: string, warnings: string[]): Camer
   return cam;
 }
 
+function readPreset(
+  value: unknown,
+  ids: readonly string[],
+  fallback: string,
+  label: string,
+  warnings: string[],
+): string {
+  if (value === undefined) return fallback;
+  if (typeof value === "string" && ids.includes(value)) return value;
+  warnings.push(`${label} "${String(value)}" 不认识，用 ${fallback}`);
+  return fallback;
+}
+
+function resolveModel(value: string, ids: string[], names: ReadonlyMap<string, string> | undefined): string | undefined {
+  if (ids.includes(value)) return value;
+  const id = names?.get(value);
+  return id && ids.includes(id) ? id : undefined;
+}
+
 function normalizeActor(raw: unknown, _index: number, models: ModelLists, where: string, warnings: string[]): Actor {
   const o = (raw ?? {}) as Record<string, unknown>;
-  let model = typeof o.model === "string" ? o.model : models.characters[0];
-  if (!models.characters.includes(model)) {
-    warnings.push(`${where}：人物 model "${model}" 不认识，用 ${models.characters[0]}`);
-    model = models.characters[0];
+  const given = typeof o.model === "string" ? o.model : models.characters[0];
+  const resolved = resolveModel(given, models.characters, models.characterNames);
+  let model = resolved ?? models.characters[0];
+  if (resolved === undefined) {
+    warnings.push(`${where}：人物 model "${given}" 不认识，用 ${model}`);
+  } else if (resolved !== given) {
+    warnings.push(`${where}：人物 model "${given}" 已改为 ${model}`);
   }
   return {
     id: typeof o.id === "string" ? o.id : "",
@@ -316,10 +345,13 @@ const KNOWN_PRESETS = new Set(POSE_PRESETS.map((p) => p.id));
 
 function normalizeProp(raw: unknown, models: ModelLists, where: string, warnings: string[]): Prop {
   const o = (raw ?? {}) as Record<string, unknown>;
-  let model = typeof o.model === "string" ? o.model : "box";
-  if (!models.props.includes(model)) {
-    warnings.push(`${where}：道具 model "${model}" 不认识，用 box`);
-    model = "box";
+  const given = typeof o.model === "string" ? o.model : "box";
+  const resolved = resolveModel(given, models.props, models.propNames);
+  const model = resolved ?? "box";
+  if (resolved === undefined) {
+    warnings.push(`${where}：道具 model "${given}" 不认识，用 box`);
+  } else if (resolved !== given) {
+    warnings.push(`${where}：道具 model "${given}" 已改为 ${model}`);
   }
   const size = Array.isArray(o.size) && o.size.length === 3
     ? (o.size.map((v) => clampNum(v, 0.05, 20, 1)) as [number, number, number])

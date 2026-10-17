@@ -10,6 +10,7 @@ import { initDescBar } from "./ui/DescBar";
 import { initKeyboard } from "./ui/keyboard";
 import { Viewport } from "./ui/viewport";
 import { exportShotPNG, exportContactSheet } from "./export/png";
+import { exportStoryboardCSV } from "./export/csv";
 import { exportLightMap } from "./export/lightmap";
 import "./style.css";
 
@@ -85,13 +86,12 @@ async function main(): Promise<void> {
         }
       },
       exportSheet: () => {
+        // 导出是异步的（逐页渲染 + 图片解码），辅助线要一直藏到全部页面画完，
+        // 否则第 2 页起会把相机/灯位 gizmo 渲进表格
         viewport.setHelpersVisible(false);
-        try {
-          void exportContactSheet(store, sm, scene);
-        } finally {
-          viewport.setHelpersVisible(true);
-        }
+        void exportContactSheet(store, sm, scene).finally(() => viewport.setHelpersVisible(true));
       },
+      exportSheetCSV: () => exportStoryboardCSV(store.project),
       exportLightMap: () => exportLightMap(store),
       switchView: () => viewport.toggleView(),
     });

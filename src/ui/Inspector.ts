@@ -4,9 +4,11 @@ import type { Store } from "../state/store";
 import { nextId } from "../state/store";
 import type { SceneManager } from "../scene/SceneManager";
 import { characterDef, getManifest, propDef } from "../scene/assets";
+import { groundName, skyName } from "../scene/environment";
 import { buildActorPanel } from "./panels/actorPanel";
 import { buildPropPanel } from "./panels/propPanel";
 import { buildCameraPanel } from "./panels/cameraPanel";
+import { buildEnvironmentPanel } from "./panels/environmentPanel";
 import { buildLightPanel } from "./panels/lightPanel";
 
 export interface PanelCtx {
@@ -100,7 +102,7 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
   function renderList(): void {
     listEl.innerHTML = "";
     const shot = store.shot;
-    const row = (label: string, type: "actor" | "prop" | "light" | "camera", id: string, extra = ""): void => {
+    const row = (label: string, type: "actor" | "prop" | "light" | "camera" | "environment", id: string, extra = ""): void => {
       const el = document.createElement("div");
       const active = store.selected?.type === type && (type === "camera" || store.selected.id === id);
       el.className = "obj-row" + (active ? " active" : "");
@@ -114,6 +116,10 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
     shot.props.forEach((pr) => row(propDef(pr.model)?.name ?? pr.model, "prop", pr.id));
     shot.lights.forEach((l) => row(l.id, "light", l.id));
     row("相机", "camera", "camera");
+    const sky = shot.environment?.sky ?? "studio";
+    const ground = shot.environment?.ground ?? "studio";
+    const envLabel = sky === "studio" && ground === "studio" ? "工作室" : `${skyName(sky)} / ${groundName(ground)}`;
+    row(envLabel, "environment", "env", "环境");
     addRow();
   }
 
@@ -133,6 +139,8 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
       if (prop) buildPropPanel(gui, ctx2, prop);
     } else if (sel.type === "camera") {
       buildCameraPanel(gui, ctx2, store.shot);
+    } else if (sel.type === "environment") {
+      buildEnvironmentPanel(gui, ctx2, store.shot);
     } else if (sel.type === "light") {
       const light = store.shot.lights.find((l) => l.id === sel.id);
       if (light) buildLightPanel(gui, ctx2, light);
@@ -159,5 +167,5 @@ export function initInspector(ctx: PanelCtx): { update: () => void } {
 }
 
 function kindName(type: string): string {
-  return { actor: "人物", prop: "道具", light: "灯", camera: "相机" }[type] ?? type;
+  return { actor: "人物", prop: "道具", light: "灯", camera: "相机", environment: "环境" }[type] ?? type;
 }

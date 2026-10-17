@@ -18,8 +18,8 @@ export const JOINT_LIMITS: Record<JointName, Partial<Record<JointParamKey, [numb
   head: { nod: [-60, 60], tilt: [-40, 40], turn: [-80, 80] },
   upperArm_L: { pitch: [0, 180], yaw: [-60, 180], twist: [-90, 90] },
   upperArm_R: { pitch: [0, 180], yaw: [-60, 180], twist: [-90, 90] },
-  lowerArm_L: { bend: [0, 150] },
-  lowerArm_R: { bend: [0, 150] },
+  lowerArm_L: { bend: [0, 150], side: [-70, 70] },
+  lowerArm_R: { bend: [0, 150], side: [-70, 70] },
   hand_L: { bend: [-70, 70], side: [-30, 30] },
   hand_R: { bend: [-70, 70], side: [-30, 30] },
   upperLeg_L: { pitch: [-40, 130], yaw: [-30, 180], twist: [-45, 45] },
@@ -201,39 +201,34 @@ export function mirrorPose(pose: Pose): Pose {
 export function autoGroundRig(rig: Rig, elevation = 0): void {
   rig.root.position.y = rig.hipHeight;
   rig.root.updateMatrixWorld(true);
-  const posed = lowestPosedY(rig.root);
-  if (posed !== null) {
-    rig.root.position.y += elevation - posed;
-    rig.root.updateMatrixWorld(true);
-    return;
-  }
-  const box = new THREE.Box3().setFromObject(rig.root);
-  rig.root.position.y += elevation - box.min.y;
+  rig.root.position.y += elevation - postedBox(rig.root).min.y;
+  rig.root.updateMatrixWorld(true);
 }
 
 /**
- * 摆完姿势后实际的最高点最低 y（世界坐标）。木头人是普通 Mesh，Box3 就够；
- * 但 SkinnedMesh 的 geometry.boundingBox 是**绑定姿态**的，Box3.setFromObject 默认不采样蒙皮，
- * 于是坐/跪/躺的人会按「站立时的脚印」落地 → 整体浮空或穿地。
- * 全量扫 10 万顶点约 90ms（滑块拖不动），按步长抽样即可，脚底这类平面误差可忽略。
- * @returns 有蒙皮网格时返回最低 y，否则 null（调用方回落到 Box3）
+ * 摆完姿势后的世界包围盒。SkinnedMesh 的 geometry.boundingBox 是**绑定姿态**的，
+ * Box3.setFromObject 默认不采样蒙皮，于是坐/跪/躺的人会按「站立时的脚印」落地，取景也按站姿算。
+ * 这里逐顶点采样蒙皮结果（按步长抽样，全量 10 万顶点约 90ms，滑块拖动不能这么慢）。
  */
-function lowestPosedY(root: THREE.Object3D): number | null {
-  let min: number | null = null;
+export function postedBox(root: THREE.Object3D): THREE.Box3 {
+  root.updateWorldMatrix(true, true);
+  const box = new THREE.Box3();
   const v = new THREE.Vector3();
   root.traverse((o) => {
     const sm = o as THREE.SkinnedMesh;
-    if (!sm.isSkinnedMesh || typeof sm.getVertexPosition !== "function") return;
-    const count = sm.geometry?.attributes?.position?.count ?? 0;
-    if (count === 0) return;
-    const stride = Math.max(1, Math.floor(count / SAMPLES_PER_MESH));
-    for (let i = 0; i < count; i += stride) {
-      sm.getVertexPosition(i, v); // 已含蒙皮，落在网格局部坐标系
-      v.applyMatrix4(sm.matrixWorld);
-      if (min === null || v.y < min) min = v.y;
+    if (sm.isSkinnedMesh && typeof sm.getVertexPosition === "function") {
+      const count = sm.geometry?.attributes?.position?.count ?? 0;
+      if (count === 0) return;
+      const stride = Math.max(1, Math.floor(count / SAMPLES_PER_MESH));
+      for (let i = 0; i < count; i += stride) {
+        sm.getVertexPosition(i, v); // 已含蒙皮，落在网格局部坐标系
+        box.expandByPoint(v.applyMatrix4(sm.matrixWorld));
+      }
+    } else if ((o as THREE.Mesh).isMesh) {
+      box.union(new THREE.Box3().setFromObject(o, true));
     }
   });
-  return min;
+  return box;
 }
 
 /** 每个蒙皮网格抽样的顶点数上限（≈ 8ms / 10 万顶点） */

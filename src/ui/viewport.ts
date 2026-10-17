@@ -118,6 +118,8 @@ export class Viewport {
     lens.rotation.x = Math.PI / 2;
     lens.position.z = -0.16;
     this.camGizmo.add(body, lens);
+    // 真实相机太小，导演视图里 10 米外只有几像素；放大成道具级大小才点得到、看得见
+    this.camGizmo.scale.setScalar(2.2);
     scene.add(this.camGizmo);
     this.camHelper = new THREE.CameraHelper(this.shotCam);
     scene.add(this.camHelper);
@@ -267,7 +269,58 @@ export class Viewport {
     if (mode === "shot") {
       this.overlayVisible = true;
     }
+    if (mode === "director") this.ensureDirectorView();
     this.requestRender();
+  }
+
+  /** 进入导演视图时若机位被墙/柜子挡住（室外机位 + 室内布景很常见），
+   *  自动换到能越过墙顶的 3/4 高处；没被挡住就保留用户原来的视角。 */
+  private ensureDirectorView(): void {
+    const subject = this.directorControls.target.clone();
+    const groups = this.sm.propGroups();
+    const current = this.directorCam.position.clone();
+    if (!this.viewBlocked(current, subject, groups)) return;
+
+    // 被挡住了：把取景中心放到「主体 ←→ 机位」的中点，保证相机 gizmo 也在画面里
+    this.updateShotCamera(this.store.shot);
+    const shotPos = this.shotCam.position.clone();
+    const mid = subject.clone().add(shotPos).multiplyScalar(0.5);
+    mid.y = Math.max(mid.y, 0.9);
+    const radius = THREE.MathUtils.clamp(subject.distanceTo(shotPos) * 1.4 + 3, 8, 22);
+    const dirs = [
+      new THREE.Vector3(0.6, 0.72, 0.7),
+      new THREE.Vector3(-0.6, 0.72, 0.7),
+      new THREE.Vector3(0.6, 0.72, -0.7),
+      new THREE.Vector3(-0.6, 0.72, -0.7),
+      new THREE.Vector3(0.15, 0.95, 0.3),
+    ];
+    for (const d of dirs) {
+      const pos = mid.clone().addScaledVector(d.normalize(), radius);
+      if (!this.viewBlocked(pos, mid, groups)) {
+        this.directorCam.position.copy(pos);
+        this.directorControls.target.copy(mid);
+        this.directorControls.update();
+        return;
+      }
+    }
+    // 四面都被挡（封闭盒子）：退到正上方，室内无顶棚时仍能看进去
+    this.directorCam.position.set(mid.x, mid.y + radius, mid.z + 0.01);
+    this.directorControls.target.copy(mid);
+    this.directorControls.update();
+  }
+
+  private viewBlocked(from: THREE.Vector3, to: THREE.Vector3, groups: THREE.Object3D[]): boolean {
+    const box = new THREE.Box3();
+    for (const g of groups) {
+      g.updateWorldMatrix(true, true);
+      box.setFromObject(g);
+      if (box.containsPoint(from)) return true;
+    }
+    const dir = to.clone().sub(from);
+    const dist = dir.length();
+    if (dist < 0.01) return false;
+    const ray = new THREE.Raycaster(from, dir.normalize(), 0, Math.max(0, dist - 0.25));
+    return ray.intersectObjects(groups, true).length > 0;
   }
   /** 视角切换：机位 ⇄ 导演（俯视时回机位）；飞行中切换不中断，接着飞新视图的相机 */
   toggleView(): void {

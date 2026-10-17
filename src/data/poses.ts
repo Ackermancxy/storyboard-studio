@@ -17,8 +17,8 @@ export const POSE_PRESETS: PresetDef[] = [
     upperArm_L: { pitch: 6, yaw: 90 }, upperArm_R: { pitch: 6, yaw: 90 },
   } } },
   { id: "hands_on_hips", name: "叉腰", pose: { joints: {
-    upperArm_L: { pitch: 45, yaw: 100, twist: 30 }, upperArm_R: { pitch: 45, yaw: 100, twist: 30 },
-    lowerArm_L: { bend: 110 }, lowerArm_R: { bend: 110 },
+    upperArm_L: { pitch: 30, yaw: 75, twist: 30 }, upperArm_R: { pitch: 30, yaw: 75, twist: 30 },
+    lowerArm_L: { bend: 85, side: 45 }, lowerArm_R: { bend: 85, side: -45 },
   } } },
   { id: "arms_crossed", name: "抱臂", pose: { joints: {
     upperArm_L: { pitch: 25, yaw: -15, twist: 70 }, upperArm_R: { pitch: 25, yaw: -15, twist: 70 },
@@ -81,18 +81,18 @@ export const POSE_PRESETS: PresetDef[] = [
   } } },
   { id: "phone_call", name: "打电话", pose: { joints: {
     head: { tilt: 10 },
-    upperArm_R: { pitch: 32, yaw: 18 }, lowerArm_R: { bend: 142 },
-    upperArm_L: { pitch: 6, yaw: 90 },
+    upperArm_R: { pitch: 104, yaw: 28, twist: -24 }, lowerArm_R: { bend: 150, side: -70 }, hand_R: { bend: 22 },
+    upperArm_L: { pitch: 8, yaw: 0 },
   } } },
   { id: "hand_to_chin", name: "托腮", pose: { joints: {
     head: { tilt: 7 },
-    upperArm_R: { pitch: 32, yaw: 12 }, lowerArm_R: { bend: 138 }, hand_R: { bend: 22 },
-    upperArm_L: { pitch: 20, yaw: 30 }, lowerArm_L: { bend: 100 },
+    upperArm_R: { pitch: 29, yaw: -57, twist: 72 }, lowerArm_R: { bend: 150, side: -70 }, hand_R: { bend: 55 },
+    upperArm_L: { pitch: 8, yaw: 0 },
   } } },
   { id: "hand_in_hair", name: "撩发", pose: { joints: {
     head: { tilt: 5, turn: 8 },
-    upperArm_R: { pitch: 145, yaw: 40 }, lowerArm_R: { bend: 125 },
-    upperArm_L: { pitch: 6, yaw: 90 },
+    upperArm_R: { pitch: 110, yaw: 5, twist: -22 }, lowerArm_R: { bend: 146, side: -70 }, hand_R: { bend: 49 },
+    upperArm_L: { pitch: 8, yaw: 0 },
   } } },
   { id: "wave", name: "挥手", pose: { joints: {
     head: { tilt: 5 },
@@ -114,10 +114,10 @@ export const POSE_PRESETS: PresetDef[] = [
   } } },
   { id: "lie_side", name: "侧躺", pose: { joints: {
     hips: { side: 85 },
-    upperLeg_L: { pitch: 22, yaw: 35 }, upperLeg_R: { pitch: 22, yaw: 35 },
-    lowerLeg_L: { bend: 68 }, lowerLeg_R: { bend: 68 },
-    upperArm_R: { pitch: 95, yaw: 10 }, lowerArm_R: { bend: 12 },
-    upperArm_L: { pitch: 65, yaw: 45 }, lowerArm_L: { bend: 60 },
+    upperLeg_L: { pitch: 4, yaw: 0 }, lowerLeg_L: { bend: 30 },
+    upperLeg_R: { pitch: 12, yaw: 0 }, lowerLeg_R: { bend: 55 },
+    upperArm_R: { pitch: 80, yaw: 0 }, lowerArm_R: { bend: 20 },
+    upperArm_L: { pitch: 20, yaw: 60 }, lowerArm_L: { bend: 40 },
   } } },
 
   /* ───────── 以下为人像摄影扩充预设 ───────── */
@@ -162,8 +162,8 @@ export const POSE_PRESETS: PresetDef[] = [
     lowerArm_L: { bend: 28 }, lowerArm_R: { bend: 28 },
   } } },
   { id: "sit_cross", name: "盘腿坐", pose: { joints: {
-    upperLeg_L: { pitch: 92, yaw: 55 }, upperLeg_R: { pitch: 92, yaw: 55 },
-    lowerLeg_L: { bend: 118 }, lowerLeg_R: { bend: 118 },
+    upperLeg_L: { pitch: 75, yaw: 50 }, upperLeg_R: { pitch: 75, yaw: 50 },
+    lowerLeg_L: { bend: 150 }, lowerLeg_R: { bend: 150 },
     upperArm_L: { pitch: 45, yaw: 20 }, upperArm_R: { pitch: 45, yaw: 20 },
     lowerArm_L: { bend: 35 }, lowerArm_R: { bend: 35 },
   } } },
@@ -183,9 +183,9 @@ export const POSE_PRESETS: PresetDef[] = [
     spine: { bend: 6 },
   } } },
   { id: "kneel_sit", name: "跪坐（正座）", pose: { joints: {
-    upperLeg_L: { pitch: 0 }, upperLeg_R: { pitch: 0 },
-    lowerLeg_L: { bend: 148 }, lowerLeg_R: { bend: 148 },
-    hips: { bend: 8 },
+    upperLeg_L: { pitch: 30 }, upperLeg_R: { pitch: 30 },
+    lowerLeg_L: { bend: 122 }, lowerLeg_R: { bend: 122 },
+    foot_L: { point: 60 }, foot_R: { point: 60 },
     upperArm_L: { pitch: 28, yaw: 15 }, upperArm_R: { pitch: 28, yaw: 15 },
     lowerArm_L: { bend: 38 }, lowerArm_R: { bend: 38 },
   } } },
@@ -233,8 +233,8 @@ export const POSE_PRESETS: PresetDef[] = [
     lowerArm_L: { bend: 12 }, lowerArm_R: { bend: 12 },
   } } },
   { id: "hands_behind", name: "背手", pose: { joints: {
-    upperArm_L: { pitch: 14, yaw: 150 }, upperArm_R: { pitch: 14, yaw: 150 },
-    lowerArm_L: { bend: 58 }, lowerArm_R: { bend: 58 },
+    upperArm_L: { pitch: 14, yaw: 171, twist: 62 }, upperArm_R: { pitch: 14, yaw: 171, twist: 62 },
+    hand_L: { bend: -20 }, hand_R: { bend: -20 },
     chest: { bend: -5 }, head: { nod: -4 },
   } } },
   { id: "selfie", name: "自拍", pose: { joints: {
@@ -263,8 +263,8 @@ export const POSE_PRESETS: PresetDef[] = [
     foot_L: { point: 18 },
   } } },
   { id: "salute", name: "敬礼", pose: { joints: {
-    upperArm_R: { pitch: 100, yaw: -12 }, lowerArm_R: { bend: 100 },
-    upperArm_L: { pitch: 6, yaw: 90 },
+    upperArm_R: { pitch: 104, yaw: 36, twist: -17 }, lowerArm_R: { bend: 141, side: -66 }, hand_R: { bend: 54 },
+    upperArm_L: { pitch: 8, yaw: 0 },
     head: { turn: 4 },
   } } },
   { id: "walk_lookback", name: "边走边回眸", pose: { joints: {
@@ -280,8 +280,9 @@ export const POSE_PRESETS: PresetDef[] = [
     spine: { bend: -5 }, head: { nod: -8 },
   } } },
   { id: "cover_face", name: "捂脸", pose: { joints: {
-    upperArm_L: { pitch: 92, yaw: -28 }, upperArm_R: { pitch: 92, yaw: -28 },
-    lowerArm_L: { bend: 132 }, lowerArm_R: { bend: 132 },
+    upperArm_L: { pitch: 52, yaw: -56, twist: 67 }, upperArm_R: { pitch: 52, yaw: -56, twist: 67 },
+    lowerArm_L: { bend: 150, side: 70 }, lowerArm_R: { bend: 150, side: -70 },
+    hand_L: { bend: 62 }, hand_R: { bend: 62 },
     head: { nod: 10 },
   } } },
   { id: "model_s", name: "S形站姿", pose: { joints: {

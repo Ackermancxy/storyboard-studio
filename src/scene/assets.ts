@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { Build } from "./mannequin";
 import type { JointName } from "../types";
+import type { ModelLists } from "../state/normalize";
 
 export interface CharacterDef {
   id: string;
@@ -37,19 +38,51 @@ export interface Manifest {
 
 let manifest: Manifest = { characters: [], props: [] };
 
+async function fetchManifestPart(url: string): Promise<Partial<Manifest> | null> {
+  try {
+    const res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) return null;
+    return (await res.json()) as Partial<Manifest>;
+  } catch {
+    return null;
+  }
+}
+
+/** 按 id 合并：manifest.local.json 覆盖/追加 base，顺序沿用 base */
+function mergeById<T extends { id: string }>(base: T[], patch: T[] | undefined): T[] {
+  if (!patch || patch.length === 0) return base;
+  const map = new Map(base.map((x) => [x.id, x]));
+  for (const x of patch) if (x?.id) map.set(x.id, x);
+  return [...map.values()];
+}
+
 export async function loadManifest(): Promise<Manifest> {
   const res = await fetch("/assets/manifest.json", { cache: "no-cache" });
   if (!res.ok) throw new Error(`manifest 加载失败：HTTP ${res.status}`);
   const raw = (await res.json()) as Partial<Manifest>;
+  // 仓库只带通用模型；本机私有模型/覆盖配置放 manifest.local.json（已被 .gitignore 忽略）
+  const local = await fetchManifestPart("/assets/manifest.local.json");
+  const chars = (raw.characters ?? []).filter((c): c is CharacterDef => !!c?.id);
+  const localChars = (local?.characters ?? []).filter((c): c is CharacterDef => !!c?.id);
+  const props = (raw.props ?? []).filter((p): p is PropDef => !!p?.id);
+  const localProps = (local?.props ?? []).filter((p): p is PropDef => !!p?.id);
   manifest = {
-    characters: (raw.characters ?? []).filter((c): c is CharacterDef => !!c?.id),
-    props: (raw.props ?? []).filter((p): p is PropDef => !!p?.id),
+    characters: mergeById(chars, localChars),
+    props: mergeById(props, localProps),
   };
   return manifest;
 }
 
 export function getManifest(): Manifest {
   return manifest;
+}
+export function modelLists(): ModelLists {
+  return {
+    characters: manifest.characters.map((c) => c.id),
+    props: manifest.props.map((p) => p.id),
+    characterNames: new Map(manifest.characters.map((c) => [c.name, c.id])),
+    propNames: new Map(manifest.props.map((p) => [p.name, p.id])),
+  };
 }
 export function characterDef(id: string): CharacterDef | undefined {
   return manifest.characters.find((c) => c.id === id);

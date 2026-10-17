@@ -27,7 +27,14 @@ export interface Shot {
   actors: Actor[];
   props: Prop[];
   lights: Light[];
-  environment?: { background: string; floor: "grid" | "plain" | "none" };
+  environment?: {
+    background: string;
+    floor: "grid" | "plain" | "none";
+    /** 天空/天气预设 id，见 scene/environment.ts；studio = 纯色背景 */
+    sky?: string;
+    /** 地面预设 id；studio = 沿用 floor 的网格/素色地面 */
+    ground?: string;
+  };
 }
 
 /* ── 人物 / 姿势（SPEC §4.3、§5.1） ── */

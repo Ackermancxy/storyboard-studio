@@ -1,5 +1,7 @@
 # 简易分镜生成器 · 设计规格（SPEC）
 
+> 这是最初 P0–P7 的设计规格，保留了当时的约定与推导过程。当前实现已经扩展了天空/地面预设、图片分镜表、CSV 导出、manifest.local.json 覆盖、Node 静态服务等；以 README、`src/types.ts` 和 `skills/storyboard/references/schema.md` 为准。
+>
 > 给实现者（AI 编程模型）看的权威文档。每个阶段开始前先完整读一遍。
 > 与本文冲突时以本文为准；本文没写的，选最简单的做法并在汇报里说明。
 

@@ -3,16 +3,10 @@
     {
       "id": "mikoto",
       "name": "女生",
-      "type": "mmd",
-      "file": "models/mikoto/御坂美琴.pmx",
-      "height": 1.56,
-      "rotateY": 0,
-      "boneMap": "mmd",
-      "hideTextures": [
-        "下着",
-        "水着",
-        "スク水"
-      ]
+      "type": "procedural",
+      "build": "female",
+      "height": 1.62,
+      "color": "#c9a06b"
     },
     {
       "id": "man",

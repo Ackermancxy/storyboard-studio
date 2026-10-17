@@ -7,8 +7,8 @@ import type { PanelCtx } from "../Inspector";
 export function buildPropPanel(gui: GUI, ctx: PanelCtx, prop: Prop): void {
   const { store, requestRender } = ctx;
   const def = getManifest().props.find((p) => p.id === prop.model);
-  const propNames: Record<string, string> = {};
-  for (const p of getManifest().props) propNames[p.id] = p.name;
+  const propOptions: Record<string, string> = {};
+  for (const p of getManifest().props) propOptions[p.name] = p.id;
 
   const slider = (
     folder: GUI,
@@ -31,7 +31,7 @@ export function buildPropPanel(gui: GUI, ctx: PanelCtx, prop: Prop): void {
   };
 
   const f0 = gui.addFolder("基本");
-  f0.add({ model: prop.model }, "model", propNames)
+  f0.add({ model: prop.model }, "model", propOptions)
     .name("类型")
     .onChange((v: string) => {
       store.transact(() => { prop.model = v; });

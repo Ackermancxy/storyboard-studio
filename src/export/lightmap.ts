@@ -1,4 +1,5 @@
 // P5：俯视灯位图（单镜一张，2D 绘制：人物/道具/灯/相机位置与朝向）。
+import type { Shot } from "../types";
 import type { Store } from "../state/store";
 import { solveCamera } from "../scene/camera";
 import { characterDef } from "../scene/assets";
@@ -6,24 +7,33 @@ import { placeLight, ROLE_COLORS } from "../scene/lights";
 import { downloadDataURL } from "./files";
 
 const FONT = 'system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
-const SCALE = 88; // px / m
 const RANGE = 6; // ±6m
-const SIZE = RANGE * 2 * SCALE;
-
-/** 世界 (x, z) → 画布坐标（+Z 朝下，+X 朝右） */
-function toXY(x: number, z: number): [number, number] {
-  return [SIZE / 2 + x * SCALE, SIZE / 2 + z * SCALE];
-}
+const SIZE = 1056;
 
 export function exportLightMap(store: Store): void {
-  const shot = store.shot;
+  const canvas = renderLightMapCanvas(store.project.title, store.shot);
+  downloadDataURL(canvas.toDataURL("image/png"), `${store.project.title}_${store.shot.id}_灯位图.png`);
+}
+
+/** 画一张灯位图（分镜表复用；compact=true 时不标道具名，避免小尺寸下文字成团） */
+export function renderLightMapCanvas(
+  title: string,
+  shot: Shot,
+  withTitle = true,
+  size = SIZE,
+  compact = false,
+): HTMLCanvasElement {
+  const scale = size / (RANGE * 2);
+  /** 世界 (x, z) → 画布坐标（+Z 朝下，+X 朝右） */
+  const toXY = (x: number, z: number): [number, number] => [size / 2 + x * scale, size / 2 + z * scale];
+
   const canvas = document.createElement("canvas");
-  canvas.width = SIZE;
-  canvas.height = SIZE;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext("2d")!;
 
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.fillRect(0, 0, size, size);
 
   // 网格（1m）
   ctx.strokeStyle = "#e4e4e8";
@@ -33,18 +43,18 @@ export function exportLightMap(store: Store): void {
     const [, gy] = toXY(0, i);
     ctx.beginPath();
     ctx.moveTo(gx, 0);
-    ctx.lineTo(gx, SIZE);
+    ctx.lineTo(gx, size);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(0, gy);
-    ctx.lineTo(SIZE, gy);
+    ctx.lineTo(size, gy);
     ctx.stroke();
   }
   // 坐标轴标注
   ctx.fillStyle = "#999";
   ctx.font = `12px ${FONT}`;
-  ctx.fillText("+X →", SIZE - 60, SIZE / 2 - 6);
-  ctx.fillText("↓ +Z", SIZE / 2 + 6, SIZE - 12);
+  ctx.fillText("+X →", size - 60, size / 2 - 6);
+  ctx.fillText("↓ +Z", size / 2 + 6, size - 12);
 
   // 道具（灰方块）
   for (const prop of shot.props) {
@@ -55,9 +65,11 @@ export function exportLightMap(store: Store): void {
     ctx.fillRect(x - 9, y - 9, 18, 18);
     ctx.strokeRect(x - 9, y - 9, 18, 18);
     drawFacingTick(ctx, x, y, prop.facing ?? 0, "#9a948a");
-    ctx.fillStyle = "#777";
-    ctx.font = `12px ${FONT}`;
-    ctx.fillText(prop.label ?? prop.id, x + 12, y - 10);
+    if (!compact) {
+      ctx.fillStyle = "#777";
+      ctx.font = `12px ${FONT}`;
+      ctx.fillText(prop.label ?? prop.id, x + 12, y - 10);
+    }
   }
 
   // 人物（圆 + 朝向）
@@ -76,7 +88,7 @@ export function exportLightMap(store: Store): void {
   }
 
   // 灯（彩色点 + 指向线）
-  for (const light of shot.lights) {
+  shot.lights.forEach((light, li) => {
     const subject = shot.actors.find((a) => a.id === light.subject) ?? shot.actors[0];
     const subPos: [number, number] = subject?.position ?? [0, 0];
     const subFacing = subject?.facing ?? 0;
@@ -99,7 +111,11 @@ export function exportLightMap(store: Store): void {
     ctx.fill();
     ctx.fillStyle = "#111";
     ctx.font = `bold 13px ${FONT}`;
-    ctx.fillText(`${light.id} ${light.role}`, lx + 10, ly + 4);
+    // 标签左右交替，三盏灯挨得近时不叠在一起
+    const right = li % 2 === 0;
+    ctx.textAlign = right ? "left" : "right";
+    ctx.fillText(`${light.id} ${light.role}`, lx + (right ? 12 : -12), ly + (li === 1 ? -10 : 4));
+    ctx.textAlign = "left";
     // 灯架符号：小三角
     ctx.strokeStyle = color;
     ctx.beginPath();
@@ -108,7 +124,7 @@ export function exportLightMap(store: Store): void {
     ctx.lineTo(lx, ly + 1);
     ctx.closePath();
     ctx.stroke();
-  }
+  });
 
   // 相机（绿方块 + 视线）
   const actorsSolve = shot.actors.map((a) => ({
@@ -133,11 +149,12 @@ export function exportLightMap(store: Store): void {
   ctx.fillText("相机", cx + 10, cy + 16);
 
   // 标题
-  ctx.fillStyle = "#111";
-  ctx.font = `bold 20px ${FONT}`;
-  ctx.fillText(`${store.project.title} · ${shot.id} ${shot.name} · 灯位图`, 16, 30);
-
-  downloadDataURL(canvas.toDataURL("image/png"), `${store.project.title}_${shot.id}_灯位图.png`);
+  if (withTitle) {
+    ctx.fillStyle = "#111";
+    ctx.font = `bold 20px ${FONT}`;
+    ctx.fillText(`${title} · ${shot.id} ${shot.name} · 灯位图`, 16, 30);
+  }
+  return canvas;
 }
 
 /** 朝向短刻线：facing 0 = 指向 +Z = 画布向下 */

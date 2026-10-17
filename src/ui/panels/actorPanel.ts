@@ -29,8 +29,8 @@ const PARAM_LABELS: Record<JointParamKey, string> = {
 
 export function buildActorPanel(gui: GUI, ctx: PanelCtx, actor: Actor): void {
   const { store, requestRender } = ctx;
-  const charNames: Record<string, string> = {};
-  for (const c of getManifest().characters) charNames[c.id] = c.name;
+  const charOptions: Record<string, string> = {};
+  for (const c of getManifest().characters) charOptions[c.name] = c.id;
 
   /** 滑杆链：onChange 里先抓快照再预览 */
   const slider = (
@@ -54,7 +54,7 @@ export function buildActorPanel(gui: GUI, ctx: PanelCtx, actor: Actor): void {
   };
 
   const f0 = gui.addFolder("基本");
-  f0.add({ model: actor.model }, "model", charNames)
+  f0.add({ model: actor.model }, "model", charOptions)
     .name("模型")
     .onChange((v: string) => store.transact(() => { actor.model = v; }));
   f0.add(actor, "label").name("名称").onFinishChange(() => store.touch());

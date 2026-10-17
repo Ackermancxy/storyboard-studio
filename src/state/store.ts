@@ -1,8 +1,10 @@
 // P2：项目状态、事件、快照式撤销重做、localStorage 自动保存（SPEC §3）。
 import type { Actor, Project, Prop, Shot } from "../types";
+import { modelLists } from "../scene/assets";
+import { normalizeProject } from "./normalize";
 import { defaultLights, newShot } from "./shotFactory";
 
-export type Selection = { type: "actor" | "prop" | "light" | "camera"; id: string } | null;
+export type Selection = { type: "actor" | "prop" | "light" | "camera" | "environment"; id: string } | null;
 
 const LS_KEY = "storyboard.project.v1";
 const MAX_UNDO = 100;
@@ -16,7 +18,9 @@ function loadStored(): Project | null {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as Project;
-    if (p?.version === 1 && Array.isArray(p.shots) && p.shots.length > 0) return p;
+    if (p?.version === 1 && Array.isArray(p.shots) && p.shots.length > 0) {
+      return normalizeProject(p, modelLists()).project;
+    }
   } catch {
     /* 损坏的存档当没有 */
   }
@@ -159,6 +163,7 @@ export class Store {
     const shot = this.shot;
     const exists =
       sel.type === "camera" ||
+      sel.type === "environment" ||
       (sel.type === "actor" && shot.actors.some((a) => a.id === sel.id)) ||
       (sel.type === "prop" && shot.props.some((p) => p.id === sel.id)) ||
       (sel.type === "light" && shot.lights.some((l) => l.id === sel.id));
