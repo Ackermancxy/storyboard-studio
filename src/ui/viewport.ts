@@ -41,6 +41,8 @@ export class Viewport {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setScissorTest(true);
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
 
     // 机位相机：filmGauge 36 + setFocalLength（SPEC §7.1）
     this.shotCam = new THREE.PerspectiveCamera(40, 1.5, 0.02, 800);
@@ -218,6 +220,9 @@ export class Viewport {
   private updateShotCamera(shot: Shot): void {
     const cs = this.sm.cameraState;
     if (!cs) return;
+    // 关键：aspect 必须同步成项目画幅，否则 setFocalLength 的 FOV 与 solveCamera 不一致
+    const aspect = this.sm.aspect;
+    if (Math.abs(this.shotCam.aspect - aspect) > 1e-6) this.shotCam.aspect = aspect;
     this.shotCam.position.copy(cs.position);
     this.shotCam.up.copy(cs.up);
     this.shotCam.lookAt(cs.target);

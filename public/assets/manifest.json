@@ -1,25 +1,390 @@
 {
   "characters": [
-    { "id": "man", "name": "男", "type": "procedural", "build": "male", "height": 1.78 },
-    { "id": "woman", "name": "女", "type": "procedural", "build": "female", "height": 1.65 },
-    { "id": "child", "name": "儿童", "type": "procedural", "build": "child", "height": 1.20 },
-    { "id": "xbot", "name": "X Bot", "type": "gltf", "file": "models/Xbot.glb", "height": 1.75, "rotateY": 0, "boneMap": "mixamo" }
+    {
+      "id": "man",
+      "name": "男",
+      "type": "procedural",
+      "build": "male",
+      "height": 1.78
+    },
+    {
+      "id": "woman",
+      "name": "女",
+      "type": "procedural",
+      "build": "female",
+      "height": 1.65
+    },
+    {
+      "id": "child",
+      "name": "儿童",
+      "type": "procedural",
+      "build": "child",
+      "height": 1.2
+    },
+    {
+      "id": "xbot",
+      "name": "X Bot",
+      "type": "gltf",
+      "file": "models/Xbot.glb",
+      "height": 1.75,
+      "rotateY": 0,
+      "boneMap": "mixamo"
+    },
+    {
+      "id": "mikoto",
+      "name": "御坂美琴",
+      "type": "mmd",
+      "file": "models/mikoto/御坂美琴.pmx",
+      "height": 1.56,
+      "rotateY": 0,
+      "boneMap": "mmd",
+      "hideTextures": [
+        "下着",
+        "水着",
+        "スク水"
+      ]
+    }
   ],
   "props": [
-    { "id": "chair", "name": "椅子", "type": "procedural", "shape": "chair" },
-    { "id": "stool", "name": "凳子", "type": "procedural", "shape": "stool" },
-    { "id": "table", "name": "桌子", "type": "procedural", "shape": "table" },
-    { "id": "sofa", "name": "沙发", "type": "procedural", "shape": "sofa" },
-    { "id": "bed", "name": "床", "type": "procedural", "shape": "bed" },
-    { "id": "box", "name": "箱子", "type": "procedural", "shape": "box", "sizeable": true },
-    { "id": "wall", "name": "墙", "type": "procedural", "shape": "wall", "sizeable": true },
-    { "id": "backdrop", "name": "背景纸", "type": "procedural", "shape": "backdrop", "sizeable": true },
-    { "id": "door", "name": "门框", "type": "procedural", "shape": "door" },
-    { "id": "window", "name": "窗框", "type": "procedural", "shape": "window" },
-    { "id": "stairs", "name": "台阶", "type": "procedural", "shape": "stairs" },
-    { "id": "tree", "name": "树", "type": "procedural", "shape": "tree" },
-    { "id": "car", "name": "汽车", "type": "procedural", "shape": "car" },
-    { "id": "umbrella", "name": "伞", "type": "procedural", "shape": "umbrella" },
-    { "id": "light_stand", "name": "灯架", "type": "procedural", "shape": "light_stand" }
+    {
+      "id": "chair",
+      "name": "椅子",
+      "type": "procedural",
+      "shape": "chair"
+    },
+    {
+      "id": "stool",
+      "name": "凳子",
+      "type": "procedural",
+      "shape": "stool"
+    },
+    {
+      "id": "table",
+      "name": "桌子",
+      "type": "procedural",
+      "shape": "table"
+    },
+    {
+      "id": "sofa",
+      "name": "沙发",
+      "type": "procedural",
+      "shape": "sofa"
+    },
+    {
+      "id": "bed",
+      "name": "床",
+      "type": "procedural",
+      "shape": "bed"
+    },
+    {
+      "id": "box",
+      "name": "箱子",
+      "type": "procedural",
+      "shape": "box",
+      "sizeable": true
+    },
+    {
+      "id": "wall",
+      "name": "墙",
+      "type": "procedural",
+      "shape": "wall",
+      "sizeable": true
+    },
+    {
+      "id": "backdrop",
+      "name": "背景纸",
+      "type": "procedural",
+      "shape": "backdrop",
+      "sizeable": true
+    },
+    {
+      "id": "door",
+      "name": "门框",
+      "type": "procedural",
+      "shape": "door"
+    },
+    {
+      "id": "window",
+      "name": "窗框",
+      "type": "procedural",
+      "shape": "window"
+    },
+    {
+      "id": "stairs",
+      "name": "台阶",
+      "type": "procedural",
+      "shape": "stairs"
+    },
+    {
+      "id": "tree",
+      "name": "树",
+      "type": "procedural",
+      "shape": "tree"
+    },
+    {
+      "id": "car",
+      "name": "汽车",
+      "type": "procedural",
+      "shape": "car"
+    },
+    {
+      "id": "umbrella",
+      "name": "伞",
+      "type": "procedural",
+      "shape": "umbrella"
+    },
+    {
+      "id": "light_stand",
+      "name": "灯架",
+      "type": "procedural",
+      "shape": "light_stand"
+    },
+    {
+      "id": "fence",
+      "name": "铁丝网",
+      "type": "procedural",
+      "shape": "fence",
+      "sizeable": true
+    },
+    {
+      "id": "railing",
+      "name": "护栏",
+      "type": "procedural",
+      "shape": "railing",
+      "sizeable": true
+    },
+    {
+      "id": "footbridge",
+      "name": "天桥",
+      "type": "procedural",
+      "shape": "footbridge",
+      "sizeable": true
+    },
+    {
+      "id": "stairs_wide",
+      "name": "大台阶",
+      "type": "procedural",
+      "shape": "stairs_wide",
+      "sizeable": true
+    },
+    {
+      "id": "torii",
+      "name": "鸟居",
+      "type": "procedural",
+      "shape": "torii",
+      "sizeable": true
+    },
+    {
+      "id": "bench",
+      "name": "长椅",
+      "type": "procedural",
+      "shape": "bench"
+    },
+    {
+      "id": "bus_stop",
+      "name": "公交站",
+      "type": "procedural",
+      "shape": "bus_stop"
+    },
+    {
+      "id": "telephone_pole",
+      "name": "电线杆",
+      "type": "procedural",
+      "shape": "telephone_pole",
+      "sizeable": true
+    },
+    {
+      "id": "vending_machine",
+      "name": "自动贩卖机",
+      "type": "procedural",
+      "shape": "vending_machine"
+    },
+    {
+      "id": "streetlamp",
+      "name": "路灯",
+      "type": "procedural",
+      "shape": "streetlamp",
+      "sizeable": true
+    },
+    {
+      "id": "traffic_light",
+      "name": "红绿灯",
+      "type": "procedural",
+      "shape": "traffic_light"
+    },
+    {
+      "id": "road_sign",
+      "name": "标志牌",
+      "type": "procedural",
+      "shape": "road_sign"
+    },
+    {
+      "id": "bridge_pier",
+      "name": "桥墩",
+      "type": "procedural",
+      "shape": "bridge_pier",
+      "sizeable": true
+    },
+    {
+      "id": "building",
+      "name": "楼",
+      "type": "procedural",
+      "shape": "building",
+      "sizeable": true
+    },
+    {
+      "id": "platform",
+      "name": "站台",
+      "type": "procedural",
+      "shape": "platform",
+      "sizeable": true
+    },
+    {
+      "id": "rail_crossing",
+      "name": "铁路道口",
+      "type": "procedural",
+      "shape": "rail_crossing"
+    },
+    {
+      "id": "phone_booth",
+      "name": "电话亭",
+      "type": "procedural",
+      "shape": "phone_booth"
+    },
+    {
+      "id": "billboard",
+      "name": "广告牌",
+      "type": "procedural",
+      "shape": "billboard",
+      "sizeable": true
+    },
+    {
+      "id": "column",
+      "name": "圆柱",
+      "type": "procedural",
+      "shape": "column",
+      "sizeable": true
+    },
+    {
+      "id": "arch",
+      "name": "拱门",
+      "type": "procedural",
+      "shape": "arch",
+      "sizeable": true
+    },
+    {
+      "id": "fountain",
+      "name": "喷泉",
+      "type": "procedural",
+      "shape": "fountain",
+      "sizeable": true
+    },
+    {
+      "id": "hedge",
+      "name": "树篱",
+      "type": "procedural",
+      "shape": "hedge",
+      "sizeable": true
+    },
+    {
+      "id": "bush",
+      "name": "灌木",
+      "type": "procedural",
+      "shape": "bush",
+      "sizeable": true
+    },
+    {
+      "id": "water",
+      "name": "水面",
+      "type": "procedural",
+      "shape": "water",
+      "sizeable": true
+    },
+    {
+      "id": "pier",
+      "name": "栈桥",
+      "type": "procedural",
+      "shape": "pier",
+      "sizeable": true
+    },
+    {
+      "id": "swing",
+      "name": "秋千",
+      "type": "procedural",
+      "shape": "swing"
+    },
+    {
+      "id": "slide",
+      "name": "滑梯",
+      "type": "procedural",
+      "shape": "slide"
+    },
+    {
+      "id": "basketball_hoop",
+      "name": "篮球架",
+      "type": "procedural",
+      "shape": "basketball_hoop"
+    },
+    {
+      "id": "goal",
+      "name": "足球门",
+      "type": "procedural",
+      "shape": "goal",
+      "sizeable": true
+    },
+    {
+      "id": "desk",
+      "name": "课桌",
+      "type": "procedural",
+      "shape": "desk"
+    },
+    {
+      "id": "blackboard",
+      "name": "黑板",
+      "type": "procedural",
+      "shape": "blackboard",
+      "sizeable": true
+    },
+    {
+      "id": "locker",
+      "name": "储物柜",
+      "type": "procedural",
+      "shape": "locker",
+      "sizeable": true
+    },
+    {
+      "id": "lantern",
+      "name": "灯笼",
+      "type": "procedural",
+      "shape": "lantern"
+    },
+    {
+      "id": "string_lights",
+      "name": "灯串",
+      "type": "procedural",
+      "shape": "string_lights",
+      "sizeable": true
+    },
+    {
+      "id": "awning",
+      "name": "遮阳棚",
+      "type": "procedural",
+      "shape": "awning",
+      "sizeable": true
+    },
+    {
+      "id": "rail_track",
+      "name": "铁轨",
+      "type": "procedural",
+      "shape": "rail_track",
+      "sizeable": true
+    },
+    {
+      "id": "sakura",
+      "name": "樱花树",
+      "type": "procedural",
+      "shape": "sakura",
+      "sizeable": true
+    }
   ]
 }

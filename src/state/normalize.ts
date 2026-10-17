@@ -160,6 +160,15 @@ function normalizeShot(raw: unknown, index: number, models: ModelLists, warnings
   }
   shot.camera = normalizeCamera(o.camera, where, warnings);
 
+  // environment：保留背景色与地面样式（缺省用 shotFactory 默认）
+  if (o.environment && typeof o.environment === "object") {
+    const env = o.environment as Record<string, unknown>;
+    shot.environment = {
+      background: typeof env.background === "string" ? env.background : shot.environment!.background,
+      floor: env.floor === "grid" || env.floor === "plain" || env.floor === "none" ? env.floor : shot.environment!.floor,
+    };
+  }
+
   const actorsRaw = Array.isArray(o.actors) ? o.actors : [];
   shot.actors = actorsRaw.slice(0, 8).map((a, i) => normalizeActor(a, i, models, where, warnings));
   fixEntityIds(shot.actors, "A", (id) => `${where} 人物 id 缺失或重复，自动改为 ${id}`, warnings, (i) => String.fromCharCode(65 + i));
@@ -301,11 +310,9 @@ function normalizePose(raw: unknown, where: string, warnings: string[]): Pose {
   return pose;
 }
 
-const KNOWN_PRESETS = new Set([
-  "stand", "stand_relaxed", "hands_on_hips", "arms_crossed", "walk", "run", "sit_chair",
-  "sit_floor", "kneel", "kneel_one", "crouch", "lean_forward", "look_back", "phone_call",
-  "hand_to_chin", "hand_in_hair", "wave", "point", "arms_up", "lie_back", "lie_side",
-]);
+import { POSE_PRESETS } from "../data/poses";
+
+const KNOWN_PRESETS = new Set(POSE_PRESETS.map((p) => p.id));
 
 function normalizeProp(raw: unknown, models: ModelLists, where: string, warnings: string[]): Prop {
   const o = (raw ?? {}) as Record<string, unknown>;

@@ -1,11 +1,17 @@
 // P2：程序化道具（SPEC §6.2）。全部低模单色、现实尺寸，原点在地面中心。
+// 扩展场景道具（天桥/鸟居/电线杆等 35 种）在 propsExtended.ts。
 import * as THREE from "three";
 import type { Prop } from "../types";
 import type { PropDef } from "./assets";
+import {
+  EXTENDED_COLORS, EXTENDED_DEFAULT_SIZE, EXTENDED_SHAPES, EXTENDED_SIZEABLE, buildExtendedProp,
+} from "./propsExtended";
 
 export const PROP_SHAPES = [
   "box", "wall", "backdrop", "door", "window", "chair", "stool", "table",
   "sofa", "bed", "stairs", "tree", "car", "umbrella", "light_stand",
+  "fence", "railing",
+  ...EXTENDED_SHAPES,
 ] as const;
 export type PropShape = (typeof PROP_SHAPES)[number];
 
@@ -14,6 +20,8 @@ const DEFAULT_COLORS: Partial<Record<PropShape, string>> = {
   window: "#9aa4ae", chair: "#8a6a48", stool: "#8a6a48", table: "#8a6a48",
   sofa: "#5f6f7f", bed: "#cfc8bc", stairs: "#9a9288", tree: "#4a7a3a",
   car: "#7a4a4a", umbrella: "#b0524a", light_stand: "#3a3a3a",
+  fence: "#2e6b4f", railing: "#eceae2",
+  ...EXTENDED_COLORS,
 };
 
 const mat = (color: string): THREE.MeshStandardMaterial =>
@@ -148,8 +156,55 @@ export function buildProp(def: PropDef, prop: Prop): THREE.Group {
       }
       box(group, mat("#f5f0e0"), 0.62, 0.62, 0.16, 0, 2.05);
       break;
-    default: // 未知 shape 当 box
-      box(group, m, size[0], size[1], size[2], 0, size[1] / 2);
+    case "fence": {
+      // 铁丝网：立柱 + 上下横杆 + 菱形网格面（canvas 纹理）
+      const [len, h] = [size[0], size[1]];
+      const frame = mat(color);
+      const nPosts = Math.max(2, Math.round(len / 1.5) + 1);
+      for (let i = 0; i < nPosts; i++) {
+        cyl(group, frame, 0.035, h, -len / 2 + (len * i) / (nPosts - 1), h / 2);
+      }
+      for (const ry of [h - 0.03, 0.06]) {
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, len, 10), frame);
+        rail.rotation.z = Math.PI / 2;
+        rail.position.y = ry;
+        group.add(rail);
+      }
+      const meshMat = new THREE.MeshStandardMaterial({
+        map: fenceTexture(), transparent: true, alphaTest: 0.3,
+        side: THREE.DoubleSide, roughness: 0.7, metalness: 0.3, color: "#9fb8aa",
+      });
+      meshMat.map!.repeat.set(len / 0.55, h / 0.55);
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(len, h - 0.12), meshMat);
+      mesh.position.y = h / 2;
+      group.add(mesh);
+      break;
+    }
+    case "railing": {
+      // 道路/海边护栏：立柱 + 两道横管
+      const [len, h] = [size[0], size[1]];
+      const white = mat(color);
+      const nPosts = Math.max(2, Math.round(len / 1.2) + 1);
+      for (let i = 0; i < nPosts; i++) {
+        cyl(group, white, 0.03, h, -len / 2 + (len * i) / (nPosts - 1), h / 2);
+      }
+      for (const ry of [h - 0.03, h * 0.52]) {
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, len, 12), white);
+        rail.rotation.z = Math.PI / 2;
+        rail.position.y = ry;
+        group.add(rail);
+      }
+      break;
+    }
+    default: {
+      // 扩展道具库；仍不认识的回退 box
+      const ext = buildExtendedProp(def.shape ?? "", size, color);
+      if (ext) {
+        group.add(ext);
+      } else {
+        box(group, m, size[0], size[1], size[2], 0, size[1] / 2);
+      }
+    }
   }
   return group;
 }
@@ -158,10 +213,36 @@ function defaultSize(shape?: string): [number, number, number] {
   switch (shape) {
     case "wall": return [4, 2.8, 0.15];
     case "backdrop": return [3, 2.5, 1.2];
-    default: return [0.5, 0.5, 0.5];
+    case "fence": return [4, 1.3, 0.04];
+    case "railing": return [4, 1.1, 0.05];
+    default:
+      return EXTENDED_DEFAULT_SIZE[shape ?? ""] ?? [0.5, 0.5, 0.5];
   }
 }
 
 export function isSizeable(def: PropDef): boolean {
-  return def.sizeable ?? ["box", "wall", "backdrop"].includes(def.shape ?? "");
+  return (def.sizeable ?? ["box", "wall", "backdrop", "fence", "railing"].includes(def.shape ?? ""))
+    || EXTENDED_SIZEABLE.has(def.shape ?? "");
+}
+
+/** 菱形铁丝网纹理（缓存一份复用） */
+let _fenceTex: THREE.CanvasTexture | null = null;
+function fenceTexture(): THREE.CanvasTexture {
+  if (_fenceTex) return _fenceTex;
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const ctx = c.getContext("2d")!;
+  ctx.clearRect(0, 0, 64, 64);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let i = -64; i <= 128; i += 16) {
+    ctx.moveTo(i, 0); ctx.lineTo(i + 64, 64);
+    ctx.moveTo(i, 64); ctx.lineTo(i + 64, 0);
+  }
+  ctx.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  _fenceTex = t;
+  return t;
 }
