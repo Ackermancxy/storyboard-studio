@@ -50,7 +50,7 @@ node scripts/install.mjs --skill-only   # 只更新 skill
 node scripts/install.mjs --port 5300    # 换端口
 ```
 
-详细的三端安装、模型接入和排错见 [`skills/storyboard/references/deploy.md`](skills/storyboard/references/deploy.md)。
+详细的三端安装、模型接入和排错见 [`skills/storyboard/references/deploy.md`](skills/storyboard/references/deploy.md)。想直接交给另一个 agent 安装，复制 [`docs/INSTALL_PROMPT.md`](docs/INSTALL_PROMPT.md) 里的整段 prompt。
 
 ## 给 AI agent 用
 

@@ -13,6 +13,8 @@ const CANDIDATES = [
   resolve(HERE, "../../.."), // skills/storyboard/references → 仓库根
   join(homedir(), ".local", "share", "storyboard"),
   join(homedir(), "storyboard"),
+  process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, "storyboard") : null,
+  join(homedir(), "AppData", "Local", "storyboard"),
 ].filter(Boolean);
 const APP = CANDIDATES.find((p) => existsSync(join(p, "public", "assets", "manifest.json")));
 const MANIFEST = APP ? join(APP, "public", "assets", "manifest.json") : null;

@@ -19,7 +19,7 @@ description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机�
    - 其他：<https://nodejs.org/>
 2. 获取代码（任选一种）：
    - `git clone https://github.com/Ackermancxy/storyboard-studio.git ~/.local/share/storyboard`
-   - 没有 git：下载 ZIP 解压到同一位置（Windows 可用 `%LOCALAPPDATA%\storyboard`）
+   - 没有 git：下载 ZIP 解压到同一位置（Windows 为 `%USERPROFILE%\.local\share\storyboard`）
 3. 一键安装：
    ```bash
    cd <代码目录>

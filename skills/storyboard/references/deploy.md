@@ -48,11 +48,20 @@ node serve.mjs 5219 dist
 
 ### Windows
 
-PowerShell 里同样执行上面三条命令。启动器是 `%LOCALAPPDATA%\storyboard\storyboard.cmd`，双击即可。
+PowerShell 里把安装目录统一到 `$HOME\.local\share\storyboard`（校验器能自动找到）：
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\.local\share" | Out-Null
+git clone https://github.com/Ackermancxy/storyboard-studio.git "$HOME\.local\share\storyboard"
+cd "$HOME\.local\share\storyboard"
+node scripts/install.mjs
+```
+
+启动器是 `%LOCALAPPDATA%\storyboard\storyboard.cmd`，双击即可。
 如果公司策略禁止脚本，直接：
 
 ```powershell
-cd $env:LOCALAPPDATA\storyboard
+cd "$HOME\.local\share\storyboard"
 node serve.mjs 5219 dist
 ```
 
@@ -153,4 +162,4 @@ skill 有变化时再跑一次 `node scripts/install.mjs --skill-only`。
 
 ## 卸载
 
-删除代码目录、`~/.local/bin/storyboard`（或 Windows 的 `%LOCALAPPDATA%\storyboard`）、`~/.claude/skills/storyboard` 即可。
+删除代码目录（Windows 为 `%USERPROFILE%\.local\share\storyboard`）、`~/.local/bin/storyboard`（Windows 为 `%LOCALAPPDATA%\storyboard\storyboard.cmd`）、`~/.claude/skills/storyboard` 即可。
