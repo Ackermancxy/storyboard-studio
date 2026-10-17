@@ -1,5 +1,6 @@
 ---
 name: storyboard
+version: 1.0.1
 description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机位、景别、拍摄计划、剧照构思），并在这台机器上安装/启动配套的 3D 分镜工具。产出一个 .storyboard.json，用户在工具里打开、微调、导出分镜表。当用户要求设计拍摄方案、画分镜、规划机位姿势布光，或安装分镜工具时使用。
 ---
 
@@ -40,7 +41,7 @@ description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机�
 2. 按 `references/schema.md` 写完整项目 JSON。每镜独立写全（人物/道具/灯光/相机/环境），不继承上一镜。
 3. 跑校验（零依赖，node 直跑）：
    ```bash
-   node <skill目录>/references/validate.mjs <json文件>
+   node <skill目录>/references/validate.js <json文件>
    ```
    检查模型 id / 预设 / 景别 / 灯角色 / 关节越界 / subject 引用 / id 重复 / 天空地面预设。
 4. 存到 `~/Downloads/<标题>.storyboard.json`，给用户绝对路径。
@@ -61,6 +62,8 @@ node scripts/install.mjs --skill-only
 刷新 http://127.0.0.1:5219/。用户在创作中途时先告知有更新，不要自动 pull。
 
 给系统加功能、改 schema、加预设/道具/天气/导出之前，先读 `references/updating.md`：里面有扩展点地图、必须同步的清单、兼容性规则和发布流程。核心不变量：JSON 是唯一数据源；新增字段必须可选并有默认值；不重用旧 id；改完必须跑 `npm run check`、`npm run build`，并用样板跑一次校验。
+
+**小红书 SkillHub 同步**：GitHub 更新后，按 `references/updating.md` 的「同步到小红书 SkillHub」章节重新发布。每次发布先把本文件 frontmatter 的 `version` 递增（当前 1.0.1），展示完整确认卡，只有用户明确回复「提交」后才 submit。
 
 ## 写法要点（容易错的）
 
@@ -93,7 +96,7 @@ node scripts/install.mjs --skill-only
 ## 文件
 
 - `references/schema.md`：完整 JSON 规格、景别表、关节范围、天空地面预设
-- `references/validate.mjs`：零依赖校验器（自动寻找工具目录，也可用 `STORYBOARD_ROOT` 指定）
+- `references/validate.js`：零依赖校验器（自动寻找工具目录，也可用 `STORYBOARD_ROOT` 指定）
 - `references/photographic-approach.md`：人像摄影的创作思路
 - `references/deploy.md`：macOS / Windows / Linux 安装、模型、排错
 - `references/updating.md`：更新已安装版本、扩展点地图、兼容性与发布流程

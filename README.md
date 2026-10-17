@@ -57,7 +57,7 @@ node scripts/install.mjs --port 5300    # 换端口
 `skills/storyboard/` 是标准 Agent Skill（`SKILL.md` + `references/` + `examples/`）。安装到 agent 的 skills 目录后，agent 会：
 
 1. 按 `references/schema.md` 写 `.storyboard.json`；
-2. 用 `references/validate.mjs` 零依赖校验；
+2. 用 `references/validate.js` 零依赖校验；
 3. 把文件放进 `~/Downloads`；
 4. 按 `SKILL.md` 的部署章节在任意机器上安装并启动 3D 工具。
 

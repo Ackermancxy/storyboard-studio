@@ -37,8 +37,8 @@ node scripts/install.mjs --skill-only   # 同步更新 skill 文档
 | 新姿势预设 | `src/data/poses.ts` | 校验器会自动读 poses.ts；更新 schema 的预设清单 |
 | 新程序化道具 | `src/scene/props.ts` / `propsExtended.ts` + manifest `props` | 校验器自动读 manifest；schema 道具说明 |
 | 新人物/模型 | 模型文件 + manifest `characters`（私有模型放 `manifest.local.json`） | README 模型说明 |
-| 新天空/天气/地面 | `src/scene/environment.ts` 的 `SKY_PRESETS` / `GROUND_PRESETS` | `schema.md` + `validate.mjs` 里的 `SKIES` / `GROUNDS` 两个 Set（它们是独立副本） |
-| 新关节或关节参数 | `src/types.ts` `JOINT_NAMES` + `src/scene/rig.ts` `JOINT_LIMITS` | `normalize.ts`、`validate.mjs` 的 `LIM`、`schema.md`、相关单测 |
+| 新天空/天气/地面 | `src/scene/environment.ts` 的 `SKY_PRESETS` / `GROUND_PRESETS` | `schema.md` + `validate.js` 里的 `SKIES` / `GROUNDS` 两个 Set（它们是独立副本） |
+| 新关节或关节参数 | `src/types.ts` `JOINT_NAMES` + `src/scene/rig.ts` `JOINT_LIMITS` | `normalize.ts`、`validate.js` 的 `LIM`、`schema.md`、相关单测 |
 | 新镜头字段 | `src/types.ts` + `normalize.ts`（给默认值/警告） | 相机求解/UI 面板、schema、样板、测试 |
 | 新导出格式 | `src/export/` + `src/ui/Toolbar.ts` + `main.ts` | README/SKILL 的工具速查、导出单测 |
 | 新可选择对象类型 | `Store.Selection` + `Inspector.ts` + `SceneManager.setSelected` | 视口拾取、选中高亮、面板 |
@@ -56,13 +56,13 @@ node scripts/install.mjs --skill-only   # 同步更新 skill 文档
 任何面向使用者的改动，提交前过一遍：
 
 - [ ] `skills/storyboard/references/schema.md`（字段、枚举、预设、道具）
-- [ ] `skills/storyboard/references/validate.mjs`（独立维护的模型/预设/天空/地面/关节清单）
+- [ ] `skills/storyboard/references/validate.js`（独立维护的模型/预设/天空/地面/关节清单）
 - [ ] `skills/storyboard/examples/放学后不想回家.storyboard.json`（样板仍能通过校验）
 - [ ] `skills/storyboard/SKILL.md`（流程、工具速查、预设数量）
 - [ ] `README.md`（特性、命令、目录）
 - [ ] `npm run check`（tsc + vitest）
 - [ ] `npm run build`
-- [ ] 用样板跑 `node skills/storyboard/references/validate.mjs ...`，应输出「10 镜全部通过」
+- [ ] 用样板跑 `node skills/storyboard/references/validate.js ...`，应输出「10 镜全部通过」
 - [ ] 浏览器冒烟：打开工具、切一个环境预设、导出 PNG / 分镜表 PNG / CSV
 
 ## 版本与兼容性
@@ -76,12 +76,30 @@ node scripts/install.mjs --skill-only   # 同步更新 skill 文档
 
 ```bash
 npm run check && npm run build
-node skills/storyboard/references/validate.mjs "skills/storyboard/examples/放学后不想回家.storyboard.json"
+node skills/storyboard/references/validate.js "skills/storyboard/examples/放学后不想回家.storyboard.json"
 git add -A && git commit -m "feat: ..."
 git push origin master
 # 建议给用户可感知的版本打 tag：
 git tag v1.1.0 && git push origin v1.1.0
 ```
+
+## 同步到小红书 SkillHub
+
+GitHub 是源码与安装源；小红书 SkillHub 是分发渠道。**每次 GitHub 发布后同步一次 SkillHub。**
+
+1. 先更新 GitHub 并 push。
+2. 递增本 skill `SKILL.md` frontmatter 的 `version`（例如 1.0.1 → 1.0.2）。SkillHub 用它区分版本。
+3. 用 `redskillhub-upload`（已安装在 `~/.claude/skills/redskillhub-upload`，CLI 在 `~/.local/share/redskillhub-upload/bin`）：
+   ```bash
+   redskillhub-upload tags --env prod
+   redskillhub-upload publish "<skill目录>" --agent --source original --tag "编程开发,内容创作" --env prod
+   ```
+   按提示扫码授权；CLI 输出 `PROMPT.type=confirm` 后，必须在对话里展示完整确认卡（含 `skill_md_content` 全文），用户明确回复「确认」「提交」或 `submit` 后才写入 `submit`。
+4. 上传包限制（CLI `pack.mjs`）：只允许 `.md .txt .html .css .js .py .sh .json` 等文本；**不允许 `.mjs`、图片、二进制、zip**。所以校验器是 `references/validate.js`，靠 skill 根目录 `package.json` 的 `"type": "module"` 保持 ESM 语法。
+5. 发布后记录回执里的 `skill_id`、`version_id`、`audit_request_id`。
+6. 凭证在 `~/.skillhub-upload/prod`，不要提交到仓库；二维码/授权码只在对话里给用户，不要写入文件。
+
+当前线上：skill_id `101481`，首次版本 `1.0.0` / version_id `107868`。
 
 ## 维护注意（踩过的坑）
 

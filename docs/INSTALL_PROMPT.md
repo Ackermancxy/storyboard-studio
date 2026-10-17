@@ -46,14 +46,14 @@
 
 5. 必须完成以下验证：
    node scripts/install.mjs --dry-run
-   node skills/storyboard/references/validate.mjs skills/storyboard/examples/放学后不想回家.storyboard.json
+   node skills/storyboard/references/validate.js skills/storyboard/examples/放学后不想回家.storyboard.json
    期望看到「10 镜全部通过」。
    启动并用 HTTP 检查（端口 5219 返回 200）：
    macOS/Linux: ~/.local/bin/storyboard
    Windows: %LOCALAPPDATA%\storyboard\storyboard.cmd
    浏览器访问 http://127.0.0.1:5219/
 
-6. 把 skills/storyboard/SKILL.md、references/ 和 examples/ 加载为你的 Agent Skill。之后用户要求画分镜、规划机位/姿势/灯光时，严格按 SKILL.md 与 references/schema.md 执行，交付前运行 validate.mjs。
+6. 把 skills/storyboard/SKILL.md、references/ 和 examples/ 加载为你的 Agent Skill。之后用户要求画分镜、规划机位/姿势/灯光时，严格按 SKILL.md 与 references/schema.md 执行，交付前运行 validate.js。
 
 7. 汇报：安装目录、skill 路径、启动器路径、Node 版本、验证结果、访问 URL。
 
