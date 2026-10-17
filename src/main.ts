@@ -42,24 +42,21 @@ async function main(): Promise<void> {
   let shotList: ReturnType<typeof initShotList>;
   let inspector: ReturnType<typeof initInspector>;
   let descBar: ReturnType<typeof initDescBar>;
+  let toolbar: ReturnType<typeof initToolbar>;
 
   try {
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x2e2e38, 1.0));
-    scene.add(new THREE.GridHelper(20, 20, 0x35353f, 0x24242c));
-    const gridMajor = new THREE.GridHelper(20, 4, 0x4d4d5e, 0x4d4d5e);
-    gridMajor.position.y = 0.002;
-    scene.add(gridMajor);
-    const shadowCatcher = new THREE.Mesh(
-      new THREE.PlaneGeometry(40, 40),
-      new THREE.ShadowMaterial({ opacity: 0.32 }),
-    );
-    shadowCatcher.rotation.x = -Math.PI / 2;
-    shadowCatcher.receiveShadow = true;
-    scene.add(shadowCatcher);
-
+    // 基础照明与地面已移入 SceneManager（按镜 environment 切换）
     store = new Store();
     sm = new SceneManager(scene);
     viewport = new Viewport(scene, store, sm, () => scheduleRefreshThumbs());
+    // 异步模型（GLTF/MMD）装好后：补一次主视图渲染 + 重拍缩略图
+    // （缩略图是同步捕获的，模型没到就拍成了占位盒，不重拍会一直留着灰块）
+    sm.requestRenderHook = () => {
+      viewport.requestRender();
+      scheduleRefreshThumbs();
+    };
+    // 调试句柄（浏览器桥/控制台排障用）
+    (window as unknown as { __sb: unknown }).__sb = { scene, store, sm, viewport, THREE };
   } catch (err) {
     fail("场景/视口", err);
     return;
@@ -74,7 +71,7 @@ async function main(): Promise<void> {
   }
 
   try {
-    initToolbar(store, {
+    toolbar = initToolbar(store, {
       toggleOverlay: () => viewport.toggleOverlay(),
       exportPng: (withOverlay) => void exportShotPNG(store, sm, scene, withOverlay),
       exportSheet: () => void exportContactSheet(store, sm, scene),
@@ -114,6 +111,8 @@ async function main(): Promise<void> {
     shotList.update();
     inspector.update();
     descBar.update();
+    // 工具栏也要回读项目：画幅/传感器下拉、撤销重做按钮禁用态都靠这里刷
+    toolbar.update();
     scheduleRefreshThumbs();
     viewport.requestRender();
   });

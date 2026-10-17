@@ -2,8 +2,12 @@
 import * as THREE from "three";
 import type { Project } from "../types";
 import { nextShotId, newShot, type Store } from "../state/store";
-import { FILM_GAUGE } from "../scene/camera";
+import { aspectValue, FILM_GAUGE } from "../scene/camera";
+import { aspectDims } from "../export/render";
 import type { SceneManager } from "../scene/SceneManager";
+
+/** 缩略图长边像素 */
+const THUMB_LONG_EDGE = 320;
 
 /** 离屏小渲染器，逐镜按机位求解结果捕获缩略图 */
 export class ThumbService {
@@ -12,6 +16,8 @@ export class ThumbService {
   private thumbs = new Map<string, string>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private busy = false;
+  /** 当前渲染画幅，跟项目走；写死宽高比会让竖画幅项目的人出框/变形 */
+  private aspect = 1.6;
 
   constructor(
     private scene: THREE.Scene,
@@ -21,6 +27,16 @@ export class ThumbService {
   ) {
     this.renderer.setSize(320, 200, false);
     this.camera.filmGauge = FILM_GAUGE;
+  }
+
+  /** 缩略图长边固定 320，短边按项目画幅算（竖画幅 → 180×320） */
+  private applyAspect(aspect: number): void {
+    if (Math.abs(this.aspect - aspect) < 1e-6) return;
+    this.aspect = aspect;
+    const { w, h } = aspectDims(aspect, THUMB_LONG_EDGE);
+    this.renderer.setSize(w, h, false);
+    this.camera.aspect = aspect;
+    this.camera.updateProjectionMatrix();
   }
 
   schedule(): void {
@@ -46,8 +62,9 @@ export class ThumbService {
   captureShot(project: Project, index: number): void {
     const shot = project.shots[index];
     if (!shot) return;
+    this.applyAspect(aspectValue(project.aspect));
     this.sm.sync(project, index);
-    // 用该镜的机位渲染（1.6 = 320/200 缩略图宽高比）
+    // 用该镜的机位渲染；canvas 与相机画幅必须一致，否则和 solveCamera 的取景对不上
     const cs = this.sm.cameraState;
     if (cs) {
       this.camera.position.copy(cs.position);
@@ -82,7 +99,10 @@ export function initShotList(
 
   function onThumb(shotId: string, url: string): void {
     const img = root.querySelector<HTMLImageElement>(`img[data-shot="${shotId}"]`);
-    if (img) img.src = url;
+    if (!img) return;
+    img.src = url;
+    // 卡片按项目画幅显示（CSS 里那个 8/5 只是没图时的兜底）
+    img.style.aspectRatio = String(aspectValue(store.project.aspect));
   }
 
   /** 结构（镜头集合/顺序/当前镜）变化才重建 DOM，滑杆拖动不重建 */
@@ -105,6 +125,7 @@ export function initShotList(
       img.dataset.shot = shot.id;
       img.src = thumbs.thumbOf(shot.id) ?? "";
       img.alt = shot.name;
+      img.style.aspectRatio = String(aspectValue(store.project.aspect));
       card.appendChild(img);
 
       const label = document.createElement("div");

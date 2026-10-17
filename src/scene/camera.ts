@@ -1,9 +1,16 @@
 // P3：焦段换算 + 语义机位求解（SPEC §7，全部纯函数）。
 import * as THREE from "three";
-import type { CameraAngle, CameraSpec, ShotSize } from "../types";
+import type { CameraAngle, CameraSpec, Project, ShotSize } from "../types";
 
 /** 全画幅胶片宽 36mm；three 的 filmGauge 用在长边上，竖画幅自动换边 */
 export const FILM_GAUGE = 36;
+
+/** "3:2" → 1.5。画幅解析的唯一出处（视口 letterbox / 导出 / 缩略图共用，
+ *  各处口径不一致就会出现「明明设了横画幅，缩略图还按竖的算」）。 */
+export function aspectValue(aspect: Project["aspect"]): number {
+  const [w, h] = aspect.split(":").map(Number);
+  return w / h;
+}
 
 export const SHOT_TABLE: Record<ShotSize, { F: number; C: number; zh: string }> = {
   ECU: { F: 0.08, C: 0.93, zh: "大特写" },
@@ -28,6 +35,7 @@ export interface SolveInputActor {
   position: [number, number];
   facing: number;
   height: number;
+  elevation?: number; // 站高（桥上、台阶上等）
 }
 
 export interface CameraSolve {
@@ -58,7 +66,7 @@ export function solveCamera(
   let H = 1.7;
   let facing = 0;
   if (picked.length > 0) {
-    for (const a of picked) P.add(new THREE.Vector3(a.position[0], 0, a.position[1]));
+    for (const a of picked) P.add(new THREE.Vector3(a.position[0], a.elevation ?? 0, a.position[1]));
     P.divideScalar(picked.length);
     H = Math.max(...picked.map((a) => a.height));
     facing = picked[0].facing;

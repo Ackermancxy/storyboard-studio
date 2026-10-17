@@ -5,10 +5,10 @@ import type { Project, Shot } from "../types";
 import { getAllPresets } from "../data/userPresets";
 import { applyPose, autoGroundRig, resolvePose, type ResolvedPose, type Rig } from "./rig";
 import { applyGaze } from "./gaze";
-import { cameraHudText, solveCamera, type CameraSolve } from "./camera";
+import { aspectValue, cameraHudText, solveCamera, type CameraSolve } from "./camera";
 import { buildMannequin, disposeMannequin, setRigColor, type Build } from "./mannequin";
 import { buildProp } from "./props";
-import { characterDef, propDef, cloneGltf, loadGLTFTemplate } from "./assets";
+import { characterDef, propDef, cloneGltf, loadGLTFTemplate, loadMMDTemplate, mmdHideTextures } from "./assets";
 import { buildGltfRig, resolveBoneMap } from "./gltfRig";
 import { kelvinToRGB, lightGain, placeLight, ROLE_COLORS } from "./lights";
 import type { Selection } from "../state/store";
@@ -18,6 +18,10 @@ interface ActorEntry {
   rig: Rig;
   modelKey: string;
   colorKey: string;
+  /** 异步模型加载期间挂的占位盒；换入真 Rig 或删除 actor 后清空。
+   *  必须挂在 actor 上，不能按 model 名共享——同模型的两个 actor 会互相顶掉，
+   *  先建的那个永远换不上真模型。 */
+  placeholderRig?: Rig;
 }
 interface PropEntry {
   group: THREE.Group;
@@ -32,11 +36,6 @@ interface LightEntry {
 
 const HIGHLIGHT = 0x1e3f66;
 
-export function aspectValue(aspect: Project["aspect"]): number {
-  const [w, h] = aspect.split(":").map(Number);
-  return w / h;
-}
-
 export class SceneManager {
   private actors = new Map<string, ActorEntry>();
   private props = new Map<string, PropEntry>();
@@ -45,15 +44,65 @@ export class SceneManager {
   shadowsOn = false;
   cameraState: CameraSolve | null = null;
   private hudSpec = "";
+  /** 异步模型加载完/换入后需要补一次渲染（按需渲染管线） */
+  requestRenderHook: () => void = () => {};
+
+  // 环境（由每镜 environment 驱动）
+  private gridMinor: THREE.GridHelper;
+  private gridMajor: THREE.GridHelper;
+  private plainFloor: THREE.Mesh;
+  private plainFloorMat: THREE.MeshStandardMaterial;
+  private shadowCatcher: THREE.Mesh;
+  private baseHemi: THREE.HemisphereLight;
 
   constructor(readonly scene: THREE.Scene) {
     this.scene.add(this.lightGizmos);
+
+    // 基础兜底照明 + 地面（原来在 main.ts 写死，挪进来按镜切换）
+    this.baseHemi = new THREE.HemisphereLight(0xffffff, 0x2e2e38, 0.9);
+    scene.add(this.baseHemi);
+    this.gridMinor = new THREE.GridHelper(20, 20, 0x5a5a70, 0x404050);
+    this.gridMajor = new THREE.GridHelper(20, 4, 0x707088, 0x707088);
+    this.gridMajor.position.y = 0.002;
+    scene.add(this.gridMinor, this.gridMajor);
+    this.plainFloorMat = new THREE.MeshStandardMaterial({ color: 0x2a2a32, roughness: 1 });
+    this.plainFloor = new THREE.Mesh(new THREE.CircleGeometry(15, 48), this.plainFloorMat);
+    this.plainFloor.rotation.x = -Math.PI / 2;
+    this.plainFloor.position.y = -0.001;
+    this.plainFloor.visible = false;
+    scene.add(this.plainFloor);
+    this.shadowCatcher = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 40),
+      new THREE.ShadowMaterial({ opacity: 0.32 }),
+    );
+    this.shadowCatcher.rotation.x = -Math.PI / 2;
+    this.shadowCatcher.receiveShadow = true;
+    scene.add(this.shadowCatcher);
+  }
+
+  /** 应用镜头里的 environment：背景色 + 地面样式 */
+  private syncEnvironment(shot: Shot): void {
+    const env = shot.environment;
+    const bg = env?.background ?? "#141419";
+    (this.scene.background as THREE.Color | null)?.set?.(bg);
+    if (!this.scene.background) this.scene.background = new THREE.Color(bg);
+    const floor = env?.floor ?? "grid";
+    this.gridMinor.visible = this.gridMajor.visible = floor === "grid";
+    this.plainFloor.visible = floor === "plain";
+    if (floor === "plain") {
+      // 地面色 = 背景色压暗，避免亮背景配死黑地板
+      this.plainFloorMat.color.set(bg).multiplyScalar(0.45);
+    }
   }
 
   sync(project: Project, shotIndex: number): void {
     const shot = project.shots[shotIndex];
     if (!shot) return;
-    this.lastRebuild = () => this.sync(project, shotIndex);
+    this.lastRebuild = () => {
+      this.sync(project, shotIndex);
+      this.requestRenderHook();
+    };
+    this.syncEnvironment(shot);
     this.syncProps(shot);
     this.solveShotCamera(project, shot);
     this.syncActors(project, shot);
@@ -79,6 +128,7 @@ export class SceneManager {
         position: a.position,
         facing: a.facing,
         height: characterDef(a.model)?.height ?? 1.73,
+        elevation: a.elevation ?? 0,
       }));
       this.cameraState = solveCamera(cam, actors, aspect);
     }
@@ -167,12 +217,12 @@ export class SceneManager {
         color: color ?? def?.color ?? "#c9a06b",
       });
     }
-    // GLTF：先给占位盒，模板加载好后构建真 Rig 并换入
+    // GLTF/MMD：先给占位盒，模板加载好后构建真 Rig 并换入
     const rig = placeholderRig(def.height ?? 1.75, "#555555");
-    this.placeholderRigs.set(model, rig);
+    entry.placeholderRig = rig;
     const replace = (newRig: Rig | null): void => {
-      if (this.placeholderRigs.get(model) !== rig || entry.rig !== rig) return; // 已被切换/删除
-      this.placeholderRigs.delete(model);
+      if (entry.placeholderRig !== rig || entry.rig !== rig) return; // 已被切换/删除
+      entry.placeholderRig = undefined;
       if (newRig) {
         const parent = rig.root.parent;
         rig.root.removeFromParent();
@@ -182,10 +232,13 @@ export class SceneManager {
       }
       this.lastRebuild?.();
     };
-    void loadGLTFTemplate(`assets/${def.file ?? ""}`)
+    const loader = def.type === "mmd" ? loadMMDTemplate : loadGLTFTemplate;
+    void loader(`assets/${def.file ?? ""}`)
       .then((template) => {
+        const inst = cloneGltf(template);
+        if (def.hideTextures?.length) mmdHideTextures(inst, def.hideTextures);
         replace(buildGltfRig(
-          cloneGltf(template),
+          inst,
           def.height ?? 1.75,
           def.rotateY ?? 0,
           resolveBoneMap(def.boneMap ?? "mixamo"),
@@ -203,7 +256,6 @@ export class SceneManager {
     return rig;
   }
 
-  private placeholderRigs = new Map<string, Rig>();
   readonly loadErrors = new Set<string>();
   lastRebuild: (() => void) | null = null;
 
@@ -366,8 +418,11 @@ export class SceneManager {
     });
   }
 
-  private removeActor(id: string): void {    const entry = this.actors.get(id);
+  private removeActor(id: string): void {
+    const entry = this.actors.get(id);
     if (!entry) return;
+    // 迟到的模型加载结果不要再换进已删除的 actor
+    entry.placeholderRig = undefined;
     this.scene.remove(entry.group);
     disposeMannequin(entry.rig);
     this.actors.delete(id);

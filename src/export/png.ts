@@ -1,18 +1,13 @@
 // P5：单镜 PNG（可带三分线/HUD）与分镜表 PNG（A4 横向 150dpi，每页 2×3）。
 import type * as THREE from "three";
 import type { Project, Shot } from "../types";
-import { ANGLE_ZH, SHOT_TABLE } from "../scene/camera";
+import { ANGLE_ZH, aspectValue, SHOT_TABLE } from "../scene/camera";
 import type { SceneManager } from "../scene/SceneManager";
 import type { Store } from "../state/store";
 import { aspectDims, OffscreenRenderer } from "./render";
 import { downloadDataURL } from "./files";
 
 const FONT = 'system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
-
-function aspectValue(aspect: Project["aspect"]): number {
-  const [w, h] = aspect.split(":").map(Number);
-  return w / h;
-}
 
 /** 单镜 PNG：长边 1920 */
 export function exportShotPNG(

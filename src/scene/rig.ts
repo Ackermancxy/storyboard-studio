@@ -43,12 +43,24 @@ export interface RigJoint {
   restDir?: THREE.Vector3; // 四肢：根坐标系下的静止方向
 }
 
+/** 跟随某个关节一起转的附加骨骼（MMD「付与親」：腕捩、肩キャンセル 之流）。
+ *  这些骨骼在 MMD 里靠付与继承源骨骼的旋转，three 的 MMDLoader 只解析不实现，
+ *  不补的话绑在它们身上的面（典型：短袖袖子）不会跟大臂动。 */
+export interface RigGrant {
+  obj: THREE.Object3D;
+  joint: JointName; // 跟随哪个关节
+  restLocal: THREE.Quaternion;
+  restRootFrame: THREE.Quaternion;
+  ratio: number; // 付与率（1 = 完全跟随）
+}
+
 export interface Rig {
   root: THREE.Object3D;
   joints: Map<JointName, RigJoint>;
   height: number; // 静止站立总高（米）
   hipHeight: number; // 髋关节静止高度（root 的基准 y）
   markers: Map<string, THREE.Object3D>; // 测试/gaze 用的参照点（鼻尖、肘、腕…）
+  grants?: RigGrant[]; // 付与骨（GLTF/木头人没有）
 }
 
 /** 每关节参数齐全且已 clamp 的姿势 */
@@ -90,15 +102,20 @@ const _d = new THREE.Vector3();
 const _e = new THREE.Euler();
 const _q = new THREE.Quaternion();
 const _rInv = new THREE.Quaternion();
+const _qg = new THREE.Quaternion();
+const IDENT = new THREE.Quaternion();
 
 /** 把已解析的姿势应用到 rig（SPEC §5.3 公式 + §5.4 通用 local = restLocal·(R⁻¹·q·R)） */
 export function applyPose(rig: Rig, pose: ResolvedPose): void {
+  const grants = rig.grants ?? [];
   for (const name of JOINT_NAMES) {
     const joint = rig.joints.get(name);
     if (!joint) continue;
     const p = pose[name] ?? {};
     if (name.startsWith("upperArm") || name.startsWith("upperLeg")) {
       // 四肢根：swing-twist。s = 左 +1 / 右 -1（SPEC §5.3）
+      // 注意：从模型自身的静止方向（A-pose/T-pose）出发，不写死 (0,-1,0)
+      const rd = joint.restDir ?? REST_DIR;
       const s = name.endsWith("_L") ? 1 : -1;
       const pitch = rad(p.pitch ?? 0);
       const yaw = rad(p.yaw ?? 0);
@@ -109,8 +126,8 @@ export function applyPose(rig: Rig, pose: ResolvedPose): void {
           Math.sin(pitch) * Math.cos(yaw),
         )
         .normalize();
-      _swing.setFromUnitVectors(REST_DIR, _d);
-      _twist.setFromAxisAngle(REST_DIR, s * rad(p.twist ?? 0)); // twist+ = 内旋，左右镜像
+      _swing.setFromUnitVectors(rd, _d);
+      _twist.setFromAxisAngle(rd, s * rad(p.twist ?? 0)); // twist+ = 内旋，左右镜像
       _q.copy(_swing).multiply(_twist); // 先 twist 再 swing
     } else if (name.startsWith("lowerArm") || name.startsWith("hand")) {
       // 肘/腕：向前弯 rotX(-bend)；手 side+ = 向自己右 → 垂下的手 rotZ(-side)
@@ -134,7 +151,30 @@ export function applyPose(rig: Rig, pose: ResolvedPose): void {
     joint.obj.quaternion
       .copy(joint.restLocal)
       .multiply(_rInv.multiply(_q).multiply(joint.restRootFrame));
+    // 付与骨：同一份 delta 套到自己的 rest 帧上。
+    // ratio −1 = 反向抵消（MMD 肩キャンセル那类骨），取逆而不是插值，避免数值漂移
+    for (const g of grants) {
+      if (g.joint !== name) continue;
+      if (g.ratio === -1) _qg.copy(_q).invert();
+      else if (g.ratio === 1) _qg.copy(_q);
+      else _qg.copy(_q).slerp(IDENT, 1 - g.ratio);
+      _rInv.copy(g.restRootFrame).invert();
+      g.obj.quaternion.copy(g.restLocal).multiply(_rInv.multiply(_qg).multiply(g.restRootFrame));
+    }
   }
+}
+
+/** 任意骨骼的静止局部旋转 / 相对人物根的朝向（构建 RigGrant 用） */
+export function restFrameOf(
+  root: THREE.Object3D,
+  obj: THREE.Object3D,
+): { restLocal: THREE.Quaternion; restRootFrame: THREE.Quaternion } {
+  root.updateMatrixWorld(true);
+  const rootInv = root.getWorldQuaternion(new THREE.Quaternion()).invert();
+  return {
+    restLocal: obj.quaternion.clone(),
+    restRootFrame: rootInv.clone().multiply(obj.getWorldQuaternion(new THREE.Quaternion())),
+  };
 }
 
 /** 镜像左右（SPEC §9）：_L/_R 参数互换；中轴关节的 side/twist/turn/tilt 取反（纯函数） */

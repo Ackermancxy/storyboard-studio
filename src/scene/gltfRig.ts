@@ -1,8 +1,8 @@
 // P6：从 GLTF 骨骼构建 Rig（SPEC §5.4、§6.1）。同一份姿势数据经 R 转换驱动任意模型。
 import * as THREE from "three";
 import type { JointName } from "../types";
-import { computeRestFrames, isLimbJoint, type Rig } from "./rig";
-import { findBone } from "./assets";
+import { computeRestFrames, isLimbJoint, restFrameOf, type Rig } from "./rig";
+import { collectMmdGrants, findBone } from "./assets";
 
 /** Mixamo 骨骼名表（含 mixamorig: 前缀变体，findBone 已兼容） */
 export const MIXAMO_BONES: Record<JointName, string> = {
@@ -17,9 +17,23 @@ export const MIXAMO_BONES: Record<JointName, string> = {
   upperLeg_R: "mixamorig:RightUpLeg", lowerLeg_R: "mixamorig:RightLeg", foot_R: "mixamorig:RightFoot",
 };
 
-/** 简写 "mixamo" → 全表 */
+/** MMD 日文骨骼名表（标准命名；缺 上半身2 的模型自动忽略 chest） */
+export const MMD_BONES: Record<JointName, string> = {
+  hips: "センター",
+  spine: "上半身",
+  chest: "上半身2",
+  neck: "首",
+  head: "頭",
+  upperArm_L: "左腕", lowerArm_L: "左ひじ", hand_L: "左手首",
+  upperArm_R: "右腕", lowerArm_R: "右ひじ", hand_R: "右手首",
+  upperLeg_L: "左足", lowerLeg_L: "左ひざ", foot_L: "左足首",
+  upperLeg_R: "右足", lowerLeg_R: "右ひざ", foot_R: "右足首",
+};
+
+/** 简写 "mixamo" / "mmd" → 全表 */
 export function resolveBoneMap(boneMap: string | Record<string, string>): Partial<Record<JointName, string>> {
   if (boneMap === "mixamo") return MIXAMO_BONES;
+  if (boneMap === "mmd") return MMD_BONES;
   return boneMap as Partial<Record<JointName, string>>;
 }
 
@@ -92,5 +106,14 @@ export function buildGltfRig(
       return m;
     })(),
   };
+  // 付与骨（MMD 腕捩等）：此刻模型还在静止姿态，先记下各自的 rest 帧
+  const grants = collectMmdGrants(model, boneMap).map((g) => ({
+    obj: g.bone,
+    joint: g.joint,
+    ratio: g.ratio,
+    ...restFrameOf(wrapper, g.bone),
+  }));
+  if (grants.length > 0) rig.grants = grants;
+
   return rig;
 }
