@@ -153,12 +153,14 @@ skill 本身只负责「写分镜 + 指导部署」；3D 工具代码仍在仓�
 
 ```bash
 cd <代码目录>
-git pull
+git status                 # 先确认没有本地改动
+git pull --ff-only
 npm ci
 npm run build
+node scripts/install.mjs --skill-only
 ```
 
-skill 有变化时再跑一次 `node scripts/install.mjs --skill-only`。
+刷新 http://127.0.0.1:5219/ 即可。完整的更新检查、兼容性规则和「加功能时改哪里」见 [`updating.md`](updating.md)。
 
 ## 卸载
 

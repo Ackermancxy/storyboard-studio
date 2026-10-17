@@ -46,6 +46,22 @@ description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机�
 4. 存到 `~/Downloads/<标题>.storyboard.json`，给用户绝对路径。
 5. 告诉用户：启动工具 → 工具栏「打开」选该文件。样板见 `examples/放学后不想回家.storyboard.json`。
 
+## C. 更新与演进
+
+仓库会持续更新。更新已安装版本：
+
+```bash
+cd ~/.local/share/storyboard   # Windows: $HOME\.local\share\storyboard
+git pull --ff-only
+npm ci
+npm run build
+node scripts/install.mjs --skill-only
+```
+
+刷新 http://127.0.0.1:5219/。用户在创作中途时先告知有更新，不要自动 pull。
+
+给系统加功能、改 schema、加预设/道具/天气/导出之前，先读 `references/updating.md`：里面有扩展点地图、必须同步的清单、兼容性规则和发布流程。核心不变量：JSON 是唯一数据源；新增字段必须可选并有默认值；不重用旧 id；改完必须跑 `npm run check`、`npm run build`，并用样板跑一次校验。
+
 ## 写法要点（容易错的）
 
 - **机位用语义参数**：shotSize（ECU 大特写/CU 特写/MCU 近景/MS 中景/MLS 中全景/FS 全景/WS 远景/EWS 大远景）+ azimuth（相对被摄者朝向，0 正面 +90 拍其左侧 -90 拍其右侧 180 背后）+ angle（eye/high/low/overhead/worm）或 elevation + placement（center/left-third/right-third）+ focalLength（等效全画幅 mm）。不手写相机坐标，程序会求解。
@@ -80,4 +96,5 @@ description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机�
 - `references/validate.mjs`：零依赖校验器（自动寻找工具目录，也可用 `STORYBOARD_ROOT` 指定）
 - `references/photographic-approach.md`：人像摄影的创作思路
 - `references/deploy.md`：macOS / Windows / Linux 安装、模型、排错
+- `references/updating.md`：更新已安装版本、扩展点地图、兼容性与发布流程
 - `examples/放学后不想回家.storyboard.json`：10 镜完整样板

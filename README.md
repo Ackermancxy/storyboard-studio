@@ -61,6 +61,8 @@ node scripts/install.mjs --port 5300    # 换端口
 3. 把文件放进 `~/Downloads`；
 4. 按 `SKILL.md` 的部署章节在任意机器上安装并启动 3D 工具。
 
+更新已安装版本、给系统加功能时该改哪些文件，见 [`skills/storyboard/references/updating.md`](skills/storyboard/references/updating.md)。
+
 完整样板：[`skills/storyboard/examples/放学后不想回家.storyboard.json`](skills/storyboard/examples/放学后不想回家.storyboard.json)（10 镜，含教室日落、站台蓝调、踏切夜景）。
 
 把 skill 交给 Claude Code：
