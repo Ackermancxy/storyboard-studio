@@ -42,6 +42,34 @@ body {
 #toolbar .spacer { flex: 1; }
 #proj-title { color: var(--dim); font-size: 12px; }
 
+/* ── 文件同步 ── */
+#btn-bind { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sync-status { color: var(--dim); font-size: 12px; min-width: 92px; }
+.sync-status.ok { color: #5fcf80; }
+.sync-status.warn { color: #e8b84b; }
+.sync-status.err { color: #ff6b6b; }
+.sync-status.saving { color: var(--accent); }
+
+#sync-banner {
+  position: fixed;
+  top: 52px;
+  right: 12px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #3a2f18;
+  border: 1px solid #8a6d2a;
+  border-radius: 8px;
+  color: #f0dca8;
+  font-size: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+#sync-banner[hidden] { display: none; }
+#sync-banner button { font-size: 12px; padding: 3px 8px; }
+#sync-banner .sync-primary { background: #8a6d2a; border-color: #a8863a; color: #fff; }
+
 button, select, input {
   background: var(--panel2);
   color: var(--text);

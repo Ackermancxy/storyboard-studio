@@ -58,7 +58,15 @@
         <label><input type="checkbox" id="shadows" disabled title="P4" /> 阴影</label>
         <div class="spacer"></div>
         <span id="proj-title">未命名项目</span>
+        <button id="btn-bind" title="绑定 .storyboard.json：改动实时写回，AI 改文件时自动刷新">绑定文件</button>
+        <span id="sync-status" class="sync-status">未绑定文件</span>
       </header>
+
+      <div id="sync-banner" hidden>
+        <span id="sync-banner-text">文件被外部修改</span>
+        <button id="sync-keep" class="sync-primary">保留我的版本</button>
+        <button id="sync-take">用磁盘版本</button>
+      </div>
 
       <aside id="shot-list">
         <div class="panel-title">镜头</div>

@@ -170,6 +170,22 @@ export class Store {
     if (!exists) this.selected = null;
   }
 
+  /**
+   * 磁盘文件被外部修改（AI 协同）后整体替换：保留当前镜头与选中项，
+   * 这样 AI 改完用户还能接着调，而不是被打回第一镜。
+   */
+  externalReplace(p: Project): void {
+    this.pushUndo();
+    const shotId = this.project.shots[this.shotIndex]?.id;
+    this.project = p;
+    this.revision++;
+    const idx = shotId ? p.shots.findIndex((s) => s.id === shotId) : -1;
+    this.shotIndex = idx >= 0 ? idx : Math.min(this.shotIndex, p.shots.length - 1);
+    if (this.shotIndex < 0) this.shotIndex = 0;
+    this.validateSelection();
+    this.emit();
+  }
+
   /** 整体替换项目（打开文件 / 导入 AI JSON / 新建），入撤销栈 */
   replaceProject(p: Project): void {
     this.pushUndo();

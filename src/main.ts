@@ -8,6 +8,7 @@ import { initShotList } from "./ui/ShotList";
 import { initInspector, type PanelCtx } from "./ui/Inspector";
 import { initDescBar } from "./ui/DescBar";
 import { initKeyboard } from "./ui/keyboard";
+import { initFileSync } from "./sync/fileSync";
 import { Viewport } from "./ui/viewport";
 import { exportShotPNG, exportContactSheet } from "./export/png";
 import { exportStoryboardCSV } from "./export/csv";
@@ -138,6 +139,13 @@ async function main(): Promise<void> {
     scheduleRefreshThumbs();
     viewport.requestRender();
   });
+
+  // 实时保存 / AI 协同：绑定 .storyboard.json 后双向同步（非关键路径，挂了不影响编辑器）
+  try {
+    initFileSync(store);
+  } catch (err) {
+    fail("文件同步", err);
+  }
 
   try {
     // 首次同步（存档里的项目可能来自打开的文件，任何渲染错误在这里暴露）
