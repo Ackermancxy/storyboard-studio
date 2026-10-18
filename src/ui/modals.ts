@@ -41,6 +41,26 @@ export function showHelpModal(): void {
   });
 }
 
+/** 视口底部的常驻快捷键提示条；点一下弹出完整帮助 */
+export function initKbdBar(): void {
+  const vp = document.getElementById("viewport");
+  if (!vp || document.getElementById("kbd-bar")) return;
+  const items: [string, string][] = [
+    ["Tab", "视图"],
+    ["T", "灯位"],
+    ["W/E", "移动/旋转"],
+    ["F/V/X", "飞行"],
+    ["1–9", "镜头"],
+    ["?", "全部"],
+  ];
+  const bar = document.createElement("div");
+  bar.id = "kbd-bar";
+  bar.title = "点击查看全部快捷键";
+  bar.innerHTML = items.map(([k, label]) => `<kbd>${k}</kbd><span>${label}</span>`).join("");
+  bar.addEventListener("click", () => showHelpModal());
+  vp.appendChild(bar);
+}
+
 export function showPresetManager(): void {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";

@@ -8,6 +8,7 @@ import { initShotList } from "./ui/ShotList";
 import { initInspector, type PanelCtx } from "./ui/Inspector";
 import { initDescBar } from "./ui/DescBar";
 import { initKeyboard } from "./ui/keyboard";
+import { initKbdBar } from "./ui/modals";
 import { initFileSync } from "./sync/fileSync";
 import { Viewport } from "./ui/viewport";
 import { exportShotPNG, exportContactSheet } from "./export/png";
@@ -116,6 +117,7 @@ async function main(): Promise<void> {
       exitFly: () => viewport.exitFly(),
       isFlying: () => viewport.flying,
     });
+    initKbdBar();
   } catch (err) {
     fail("工具栏/面板", err);
     return;
