@@ -194,3 +194,10 @@ button.accent { color: var(--accent); border-color: color-mix(in srgb, var(--acc
 .modal .warnings.preset-list { color: var(--text); max-height: 320px; }
 .preset-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--border); }
 .modal .actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* 「打开」服务端文件列表 */
+.file-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; min-width: 420px; }
+.file-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: var(--bg); color: var(--text); text-align: left; width: 100%; }
+.file-row:hover { border-color: #7aa2f7; background: #23232b; }
+.file-row .file-name { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-row .file-meta { font-size: 11px; opacity: 0.6; white-space: nowrap; }

@@ -22,6 +22,20 @@ type FileReply = {
   error?: string;
 };
 
+/** 给「打开」流程复用：选文件 = 绑定（打开即协同） */
+export interface FileSyncApi {
+  path(): string | null;
+  bind(rawPath: string, mode?: "load" | "overwrite"): Promise<boolean>;
+  unbind(): void;
+}
+
+let apiSingleton: FileSyncApi | null = null;
+
+/** initFileSync 之后可用；未初始化（测试/异常）时返回 null */
+export function fileSyncApi(): FileSyncApi | null {
+  return apiSingleton;
+}
+
 export function initFileSync(store: Store): void {
   const btnBind = document.getElementById("btn-bind") as HTMLButtonElement | null;
   const statusEl = document.getElementById("sync-status");
@@ -178,8 +192,8 @@ export function initFileSync(store: Store): void {
     applyRemote(res);
   }
 
-  /** 绑定并载入（文件不存在则用当前项目创建） */
-  async function bind(rawPath: string, mode: "load" | "overwrite" = "load"): Promise<void> {
+  /** 绑定并载入（文件不存在则用当前项目创建）；成功返回 true */
+  async function bind(rawPath: string, mode: "load" | "overwrite" = "load"): Promise<boolean> {
     const res = await apiGet(rawPath);
     if (res.ok) {
       bound = res.path ?? rawPath;
@@ -191,10 +205,9 @@ export function initFileSync(store: Store): void {
         dirty = true;
         hideBanner();
         await flush(true);
-        return;
+        return true;
       }
-      applyRemote(res);
-      return;
+      return applyRemote(res);
     }
     if (res.status === 404 && res.path) {
       bound = res.path;
@@ -205,9 +218,10 @@ export function initFileSync(store: Store): void {
       dirty = true;
       hideBanner();
       await flush(true);
-      return;
+      return true;
     }
     window.alert(`绑定失败：${res.error || `HTTP ${res.status}`}`);
+    return false;
   }
 
   function unbind(): void {
@@ -224,10 +238,8 @@ export function initFileSync(store: Store): void {
 
   btnBind.addEventListener("click", () => {
     const input = window.prompt(
-      "绑定一个 .storyboard.json 文件（支持 ~ 开头的路径）。\n" +
-        "改动会实时写回；AI 改这个文件时页面会自动刷新。\n\n" +
-        "留空并确定 = 解除绑定。\n" +
-        "路径前加 ! = 用当前项目覆盖该文件（例：!~/Downloads/新案.storyboard.json）",
+      "绑定 .storyboard.json 路径（点「打开」选文件会自动绑定，一般不用手填）。\n" +
+        "留空并确定 = 解除绑定；路径前加 ! = 用当前项目覆盖该文件。",
       bound ?? "~/Downloads/",
     );
     if (input === null) return;
@@ -278,7 +290,7 @@ export function initFileSync(store: Store): void {
   if (bound) {
     setStatus("连接中…", "saving");
     void apiGet(bound).then((res) => {
-      if (res.ok) applyRemote(res);
+      if (res.ok) applyRemote(res); // 刷新/重开后以磁盘为准（绑定持久，不用重选）
       else if (res.status === 404) setStatus("文件不存在", "err");
       else setStatus(`连接失败：${res.error || res.status}`, "err");
     });
@@ -287,4 +299,21 @@ export function initFileSync(store: Store): void {
   }
 
   window.setInterval(() => void poll(), POLL_MS);
+
+  // 服务端 fs.watch → SSE 即时推送；1s 轮询只作兜底
+  try {
+    const es = new EventSource("/api/events");
+    es.onmessage = (e) => {
+      try {
+        const m = JSON.parse(e.data) as { type?: string; path?: string };
+        if (m.type === "file-changed" && m.path === bound) void poll();
+      } catch {
+        /* 忽略坏消息 */
+      }
+    };
+  } catch {
+    /* EventSource 不可用就靠轮询 */
+  }
+
+  apiSingleton = { path: () => bound, bind, unbind };
 }

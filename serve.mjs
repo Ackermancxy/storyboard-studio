@@ -12,7 +12,7 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
-import { stat, createReadStream } from "node:fs";
+import { stat, createReadStream, watch as fsWatch } from "node:fs";
 import { promises as fsp } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -114,9 +114,11 @@ async function handleFileApi(req, res, url) {
         send(res, 200, "", { "Content-Type": "application/json; charset=utf-8" });
         return;
       }
+      watchFile(file, st.mtimeMs); // 页面读过的文件进入监听，外部改动经 SSE 推回
       sendJson(res, 200, { ok: true, path: file, mtimeMs: st.mtimeMs, content });
     } catch (err) {
       if (err && err.code === "ENOENT") {
+        watchFile(file); // 绑定还不存在的文件也要监听，否则创建后的外部改动推不过来
         sendJson(res, 404, { ok: false, path: file, error: "文件不存在" });
         return;
       }
@@ -173,11 +175,93 @@ async function handleFileApi(req, res, url) {
     await fsp.writeFile(tmp, content, "utf8");
     await fsp.rename(tmp, file);
     const st = await fsp.stat(file);
+    watchFile(file, st.mtimeMs);
+    broadcast({ type: "file-changed", path: file, mtimeMs: st.mtimeMs });
     sendJson(res, 200, { ok: true, path: file, mtimeMs: st.mtimeMs });
     return;
   }
 
   throw new HttpError(405, "Method Not Allowed");
+}
+
+/* ─── 实时协同：fs.watch → SSE 即时推送 + 最近文件列表 ─── */
+
+const sseClients = new Set();
+const dirWatchers = new Map(); // 目录 → FSWatcher（一目录一 watcher，rename 原子写也触发）
+const watchedFiles = new Map(); // 文件 → 上次广播的 mtimeMs
+const pendingWatch = new Map(); // 文件 → debounce timer
+
+function broadcast(obj) {
+  const data = `data: ${JSON.stringify(obj)}\n\n`;
+  for (const res of sseClients) {
+    try {
+      res.write(data);
+    } catch {
+      sseClients.delete(res);
+    }
+  }
+}
+
+/** 登记监听一个分镜文件；mtimeMs 为当前已知值（用于过滤自己写回的回声） */
+function watchFile(file, mtimeMs = -1) {
+  watchedFiles.set(file, mtimeMs);
+  const dir = path.dirname(file);
+  if (dirWatchers.has(dir)) return;
+  let watcher;
+  try {
+    watcher = fsWatch(dir, { persistent: false }, (event, filename) => {
+      if (!filename || !filename.toLowerCase().endsWith(".storyboard.json")) return;
+      const full = path.join(dir, filename);
+      if (!watchedFiles.has(full)) return; // 只推页面/AI 实际在用的文件
+      clearTimeout(pendingWatch.get(full));
+      pendingWatch.set(full, setTimeout(() => void notifyChanged(full), 120));
+    });
+  } catch {
+    return; // 监听失败不致命，页面还有 1s 轮询兜底
+  }
+  watcher.on("error", () => dirWatchers.delete(dir));
+  dirWatchers.set(dir, watcher);
+}
+
+async function notifyChanged(file) {
+  let mtimeMs;
+  try {
+    mtimeMs = (await fsp.stat(file)).mtimeMs;
+  } catch {
+    watchedFiles.delete(file);
+    broadcast({ type: "file-changed", path: file, gone: true });
+    return;
+  }
+  const prev = watchedFiles.get(file);
+  watchedFiles.set(file, mtimeMs);
+  
+  if (typeof prev === "number" && prev >= 0 && Math.abs(mtimeMs - prev) < 1) return; // 自己写回的回声
+  broadcast({ type: "file-changed", path: file, mtimeMs });
+}
+
+/** 最近的分镜文件：主目录 + Downloads 顶层，按修改时间倒序 */
+async function handleListApi(res) {
+  const dirs = [...new Set([os.homedir(), path.join(os.homedir(), "Downloads")])];
+  const files = [];
+  for (const dir of dirs) {
+    let names = [];
+    try {
+      names = await fsp.readdir(dir);
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      if (!name.toLowerCase().endsWith(".storyboard.json") || name.startsWith(".")) continue;
+      try {
+        const st = await fsp.stat(path.join(dir, name));
+        if (st.isFile()) files.push({ path: path.join(dir, name), name, dir, mtimeMs: st.mtimeMs, size: st.size });
+      } catch {
+        /* 刚被删掉的就算了 */
+      }
+    }
+  }
+  files.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  sendJson(res, 200, { ok: true, files: files.slice(0, 30) });
 }
 
 const server = http.createServer(async (req, res) => {
@@ -196,6 +280,27 @@ const server = http.createServer(async (req, res) => {
       const status = err instanceof HttpError ? err.status : 500;
       sendJson(res, status, { ok: false, error: err instanceof Error ? err.message : String(err) });
     }
+    return;
+  }
+
+  if (url.pathname === "/api/list") {
+    try {
+      await handleListApi(res);
+    } catch (err) {
+      sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+    }
+    return;
+  }
+
+  if (url.pathname === "/api/events") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-store",
+      Connection: "keep-alive",
+    });
+    res.write("retry: 2000\n\n");
+    sseClients.add(res);
+    req.on("close", () => sseClients.delete(res));
     return;
   }
 

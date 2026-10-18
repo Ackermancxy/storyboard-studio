@@ -5,9 +5,10 @@ import type { Store } from "../state/store";
 import { newProject } from "../state/store";
 import { openProjectFile, saveProjectFile, copyText } from "../export/files";
 import { buildAiPrompt, buildAiRevisePrompt } from "../ai/prompt";
-import { showImportModal } from "./modals";
+import { showImportModal, showServerFileList } from "./modals";
 import { normalizeProject } from "../state/normalize";
 import { modelLists } from "../scene/assets";
+import { fileSyncApi } from "../sync/fileSync";
 
 export interface ToolbarHooks {
   toggleOverlay?: () => void;
@@ -28,7 +29,8 @@ export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => 
     if (!window.confirm("新建项目？当前项目会保留在撤销历史里（Ctrl+Z 可退回）。")) return;
     store.replaceProject(newProject());
   });
-  $("btn-open").addEventListener("click", () => {
+  $("btn-open").title = "打开并自动绑定：AI 改这个文件时页面即时刷新";
+  const openViaBrowser = (): void => {
     openProjectFile()
       .then((raw) => {
         const { project, warnings } = normalizeProject(raw, modelLists());
@@ -36,8 +38,24 @@ export function initToolbar(store: Store, hooks: ToolbarHooks): { update: () => 
           return;
         }
         store.replaceProject(project);
+        // 浏览器选的文件拿不到路径，无法绑定；若还绑着别的文件先解开，
+        // 否则之后随手一改就会把这边的内容整体写回绑定文件（树下墓前 被覆盖就是这么来的）
+        const sync = fileSyncApi();
+        if (sync?.path()) sync.unbind();
       })
       .catch((err: Error) => window.alert(err.message));
+  };
+  $("btn-open").addEventListener("click", () => {
+    const sync = fileSyncApi();
+    if (!sync) {
+      openViaBrowser();
+      return;
+    }
+    // 打开 = 绑定：从服务端最近文件里选，免去手填路径
+    showServerFileList(
+      (p) => void sync.bind(p),
+      openViaBrowser,
+    );
   });
   $("btn-save").addEventListener("click", () => saveProjectFile(store.project));
   $("btn-import").addEventListener("click", () => showImportModal(store));

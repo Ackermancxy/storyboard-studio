@@ -183,3 +183,74 @@ export function showImportModal(store: Store): void {
     close();
   });
 }
+
+/* ─── 「打开」服务端文件列表：选中即绑定（打开 = 协同） ─── */
+
+function relativeTime(ms: number): string {
+  const s = (Date.now() - ms) / 1000;
+  if (s < 60) return "刚刚";
+  if (s < 3600) return `${Math.floor(s / 60)} 分钟前`;
+  if (s < 86400) return `${Math.floor(s / 3600)} 小时前`;
+  return `${Math.floor(s / 86400)} 天前`;
+}
+
+/**
+ * 列出主目录 / Downloads 下最近改动的 .storyboard.json，点一条 = onPick(绝对路径)。
+ * 服务端拿不到列表（旧版本 server / 接口挂了）时走 onFallback（浏览器文件选择器，无法自动绑定）。
+ */
+export function showServerFileList(onPick: (path: string) => void, onFallback: () => void): void {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="modal">
+      <h3>打开分镜（打开即自动绑定：AI 改文件时页面即时刷新）</h3>
+      <div class="file-list">加载中…</div>
+      <div class="actions">
+        <button data-act="browse">浏览本机其他位置…</button>
+        <button data-act="close">关闭</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  const close = (): void => backdrop.remove();
+  const list = backdrop.querySelector<HTMLDivElement>(".file-list")!;
+  backdrop.querySelector("[data-act=close]")!.addEventListener("click", close);
+  backdrop.addEventListener("pointerdown", (e) => {
+    if (e.target === backdrop) close();
+  });
+  backdrop.querySelector("[data-act=browse]")!.addEventListener("click", () => {
+    close();
+    onFallback();
+  });
+  void fetch("/api/list")
+    .then((r) => r.json() as Promise<{ ok?: boolean; files?: { path: string; name: string; dir: string; mtimeMs: number }[]; error?: string }>)
+    .then((j) => {
+      if (!j.ok || !j.files) throw new Error(j.error ?? "列表不可用");
+      if (!j.files.length) {
+        list.textContent = "主目录和 Downloads 里还没有 .storyboard.json 文件";
+        return;
+      }
+      list.textContent = "";
+      for (const f of j.files) {
+        const row = document.createElement("button");
+        row.className = "file-row";
+        row.title = f.path;
+        const name = document.createElement("span");
+        name.className = "file-name";
+        name.textContent = f.name;
+        const meta = document.createElement("span");
+        meta.className = "file-meta";
+        const where = f.dir.replace(/\/+$/, "").endsWith("Downloads") ? "Downloads" : "~";
+        meta.textContent = `${where} · ${relativeTime(f.mtimeMs)}`;
+        row.append(name, meta);
+        row.addEventListener("click", () => {
+          close();
+          onPick(f.path);
+        });
+        list.appendChild(row);
+      }
+    })
+    .catch(() => {
+      close();
+      onFallback();
+    });
+}

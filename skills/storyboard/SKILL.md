@@ -39,16 +39,12 @@ description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机�
 
 1. 问清或自行补齐：拍摄主题、场景、人数、画幅（默认 3:2）、时长节奏。
 2. 按 `references/schema.md` 写完整项目 JSON。每镜独立写全（人物/道具/灯光/相机/环境），不继承上一镜。
-3. 跑校验（零依赖，node 直跑）：
+3. **默认不跑自检，快速出片。** 118 个预设和内置环境已通过几何审计，改 JSON、微调姿势/机位这类小改动直接改靠推理即可，不要主动跑校验/骨架审计。
+   **只有用户说「有问题 / 哪里不对 / 检查一下」时才启动自检**：
    ```bash
-   node <skill目录>/references/validate.js <json文件>
+   node <skill目录>/references/validate.js <json文件>   # 模型 id / 预设 / 景别 / 灯角色 / 关节越界 / subject 引用 / id 重复
+   node <skill目录>/references/analyze.js <json文件>    # 实测骨架：动作到位、穿模、失衡、道具适配（详见 references/analyze.md）
    ```
-   检查模型 id / 预设 / 景别 / 灯角色 / 关节越界 / subject 引用 / id 重复 / 天空地面预设。
-   然后跑实测骨架验收（坐/跪/躺/扶墙/扶栏/用道具高度的镜头必跑）：
-   ```bash
-   node <skill目录>/references/analyze.js <json文件>
-   ```
-   它离线算出骨骼形态，回答「动作做到位没有、有没有穿模/失衡、和道具合不合适」，不靠截图。详见 `references/analyze.md`。
 4. 存到 `~/Downloads/<标题>.storyboard.json`，给用户绝对路径。
 5. 告诉用户：启动工具 → 工具栏「打开」选该文件；或点「绑定文件」把该路径绑上——之后微调会实时写回，你直接编辑同一个 JSON 时页面也会自动刷新（保留当前镜头和选中项）。样板见 `examples/放学后不想回家.storyboard.json`。
 

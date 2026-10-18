@@ -16,3 +16,6 @@ tools/pose-analysis/profiles/local/
 .DS_Store
 Thumbs.db
 *.log
+
+# 图鉴生成产物（npm run atlas 可重建，PNG 交付放 ~/Downloads）
+tools/pose-analysis/atlas/
