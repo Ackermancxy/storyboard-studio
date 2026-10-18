@@ -87,19 +87,19 @@ git tag v1.1.0 && git push origin v1.1.0
 
 GitHub 是源码与安装源；小红书 SkillHub 是分发渠道。**每次 GitHub 发布后同步一次 SkillHub。**
 
-1. 先更新 GitHub 并 push。
-2. 递增本 skill `SKILL.md` frontmatter 的 `version`（例如 1.0.1 → 1.0.2）。SkillHub 用它区分版本。
-3. 用 `redskillhub-upload`（已安装在 `~/.claude/skills/redskillhub-upload`，CLI 在 `~/.local/share/redskillhub-upload/bin`）：
-   ```bash
-   redskillhub-upload tags --env prod
-   redskillhub-upload publish "<skill目录>" --agent --source original --tag "编程开发,内容创作" --env prod
-   ```
-   按提示扫码授权；CLI 输出 `PROMPT.type=confirm` 后，必须在对话里展示完整确认卡（含 `skill_md_content` 全文），用户明确回复「确认」「提交」或 `submit` 后才写入 `submit`。
-4. 上传包限制（CLI `pack.mjs`）：只允许 `.md .txt .html .css .js .py .sh .json` 等文本；**不允许 `.mjs`、图片、二进制、zip**。所以校验器是 `references/validate.js`，靠 skill 根目录 `package.json` 的 `"type": "module"` 保持 ESM 语法。
-5. 发布后记录回执里的 `skill_id`、`version_id`、`audit_request_id`。
-6. 凭证在 `~/.skillhub-upload/prod`，不要提交到仓库；二维码/授权码只在对话里给用户，不要写入文件。
+SkillHub 上发的是**引导包** `skills/storyboard-hub/`（只有一个 `SKILL.md`，不含代码）：它指引 agent 从 GitHub clone 完整仓库并跑 `scripts/install.mjs`，装好后完整版 skill（本目录）会覆盖引导包。应用代码进不了 SkillHub 包——平台只收文本扩展名（`.md .txt .html .css .js .py .sh .json` 等，不允许 `.mjs`、图片、二进制），而仓库里是 `.ts` 源码和 `.glb/.pmx/.png` 模型资源。
 
-当前线上：skill_id `101481`，首次版本 `1.0.0` / version_id `107868`。
+1. 先更新 GitHub 并 push。
+2. 递增**两处** frontmatter 的 `version`（`skills/storyboard/SKILL.md` 和 `skills/storyboard-hub/SKILL.md`，两处保持一致）。
+3. 打包：
+   ```bash
+   node scripts/pack-hub.mjs
+   ```
+   产出 `~/Downloads/storyboard-<version>.zip`（只有根目录一个 `SKILL.md`，自带零依赖 zip 写入器，输出含 SHA-256）。
+4. 上传：**CLI `publish` 只能新建 skill，更新已有 skill 会被拒（「Skill ID 已被占用」）**。更新一律走网页控制台 <https://creator.xiaohongshu.com/new/skill-hub> → 对应 skill 卡片「更新版本」→ 传 zip → 选「Skill源码为原创」→ 下一步 → 核对版本号与标签 → 提交。参数已固定（用户 2026-10-18 永久授权自动提交，不再逐次确认）：source=原创，标签=编程开发、内容创作。
+5. 发布后记录回执里的 `version_id`、`audit_request_id`；凭证在 `~/.skillhub-upload/prod`，不要提交到仓库。
+
+当前线上：skill_id `101481`，首发版本 `1.0.0` / version_id `107868`（完整 skill 形态）；`1.1.0` 起改为引导包形态。
 
 ## 维护注意（踩过的坑）
 

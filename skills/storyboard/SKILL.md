@@ -1,6 +1,6 @@
 ---
 name: storyboard
-version: 1.0.4
+version: 1.1.0
 description: 为摄影师设计拍摄脚本/分镜（storyboard、分镜、机位、景别、拍摄计划、剧照构思），并在这台机器上安装/启动配套的 3D 分镜工具。产出一个 .storyboard.json，用户在工具里打开、微调、导出分镜表。当用户要求设计拍摄方案、画分镜、规划机位姿势布光，或安装分镜工具时使用。
 ---
 
@@ -68,7 +68,7 @@ node scripts/install.mjs --skill-only
 
 给系统加功能、改 schema、加预设/道具/天气/导出之前，先读 `references/updating.md`：里面有扩展点地图、必须同步的清单、兼容性规则和发布流程。核心不变量：JSON 是唯一数据源；新增字段必须可选并有默认值；不重用旧 id；改完必须跑 `npm run check`、`npm run build`，并用样板跑一次校验。
 
-**小红书 SkillHub 同步**：GitHub 更新后，按 `references/updating.md` 的「同步到小红书 SkillHub」章节重新发布。每次发布先把本文件 frontmatter 的 `version` 递增（当前 1.0.4），展示完整确认卡，只有用户明确回复「提交」后才 submit。
+**小红书 SkillHub 同步**：SkillHub 上发的是 `skills/storyboard-hub/`（纯引导包，不含代码，指引 agent 从 GitHub 下载安装；本 skill 会在安装时覆盖它）。GitHub 更新后按 `references/updating.md` 的「同步到小红书 SkillHub」章节，用 `node scripts/pack-hub.mjs` 打包上传。每次发布先同步递增两处 frontmatter 的 `version`（本文件与 storyboard-hub，当前 1.1.0）。上传参数已固定：原创 + 标签「编程开发、内容创作」，用户已永久授权自动提交，不必逐次确认。注意 CLI publish 只能新建 skill，更新走网页控制台「更新版本」。
 
 ## 写法要点（容易错的）
 
