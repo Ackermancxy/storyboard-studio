@@ -5,7 +5,12 @@ dist/
 # 本地私有模型与覆盖配置（不随仓库分发）
 public/assets/models/mikoto/
 public/assets/manifest.local.json
-tools/
+
+# 姿势分析工具本身进仓库；从私有模型量出来的档案留在本机
+tools/*
+!tools/pose-analysis/
+!tools/pose-analysis/**
+tools/pose-analysis/profiles/local/
 
 # 系统垃圾
 .DS_Store

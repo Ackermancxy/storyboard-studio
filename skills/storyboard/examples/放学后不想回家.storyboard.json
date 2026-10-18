@@ -412,12 +412,13 @@
         "bend": 6
        },
        "upperArm_R": {
-        "pitch": 29,
-        "yaw": -57,
-        "twist": 72
+        "pitch": 65,
+        "yaw": 0,
+        "twist": 55
        },
        "lowerArm_R": {
-        "bend": 150
+        "bend": 150,
+        "side": -70
        },
        "hand_R": {
         "bend": 55

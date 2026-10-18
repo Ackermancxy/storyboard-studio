@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
 import { buildMannequin } from "../src/scene/mannequin";
-import { applyPose, autoGroundRig, mirrorPose, resolvePose, type Rig } from "../src/scene/rig";
+import { applyPose, autoGroundRig, mirrorPose, postedBox, resolvePose, type Rig } from "../src/scene/rig";
 import { presetMap } from "../src/data/poses";
 import type { JointName, Pose } from "../src/types";
 
@@ -251,5 +251,36 @@ describe("autoGroundRig（蒙皮网格）", () => {
     autoGroundRig(rig, 0.8);
 
     expect(new THREE.Box3().setFromObject(rig.root, true).min.y).toBeCloseTo(0.8, 2);
+  });
+
+  it("autoGround 忽略裙摆/头发：软布料贴地不把身体顶起来", () => {
+    const root = new THREE.Group();
+    const strip = (boneName: string, y0: number) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([
+        0, y0, 0, 0, y0 + 1, 0, 0.4, y0, 0, 0.4, y0 + 1, 0,
+      ]), 3));
+      geo.setAttribute("skinIndex", new THREE.BufferAttribute(new Uint16Array(16), 4));
+      geo.setAttribute("skinWeight", new THREE.BufferAttribute(new Float32Array([
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+      ]), 4));
+      const bone = new THREE.Bone();
+      bone.name = boneName;
+      const mesh = new THREE.SkinnedMesh(geo, new THREE.MeshStandardMaterial());
+      mesh.add(bone);
+      mesh.updateMatrixWorld(true);
+      mesh.bind(new THREE.Skeleton([bone]));
+      return mesh;
+    };
+    const body = strip("body", 0); // 身体最低点 y=0
+    const skirt = strip("スカート", -0.3); // 裙摆比身体低 30cm
+    root.add(body, skirt);
+    root.updateMatrixWorld(true);
+    const rig: Rig = { root, joints: new Map(), height: 1, hipHeight: 1, markers: new Map() };
+
+    autoGroundRig(rig, 0);
+
+    expect(postedBox(body).min.y).toBeCloseTo(0, 2); // 身体恰好贴地
+    expect(postedBox(root).min.y).toBeCloseTo(-0.3, 2); // 裙摆允许穿地
   });
 });

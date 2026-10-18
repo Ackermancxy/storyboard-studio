@@ -201,16 +201,24 @@ export function mirrorPose(pose: Pose): Pose {
 export function autoGroundRig(rig: Rig, elevation = 0): void {
   rig.root.position.y = rig.hipHeight;
   rig.root.updateMatrixWorld(true);
-  rig.root.position.y += elevation - postedBox(rig.root).min.y;
+  // 只让身体硬表面贴地：坐/跪时裙摆和长发通常低于臀部，算进去会把整个人顶起来。
+  // 这与 tools/pose-analysis 的 SOFT_GROUND_BONES 是同一套语义。
+  rig.root.position.y += elevation - postedBox(rig.root, { excludeSoftCloth: true }).min.y;
   rig.root.updateMatrixWorld(true);
 }
+
+/** 裙摆/头发等软布料骨骼：不参与“身体最低点”判定。 */
+const SOFT_GROUND_BONE = /スカート|skirt|髪|hair|後髪|前髪/i;
 
 /**
  * 摆完姿势后的世界包围盒。SkinnedMesh 的 geometry.boundingBox 是**绑定姿态**的，
  * Box3.setFromObject 默认不采样蒙皮，于是坐/跪/躺的人会按「站立时的脚印」落地，取景也按站姿算。
  * 这里逐顶点采样蒙皮结果（按步长抽样，全量 10 万顶点约 90ms，滑块拖动不能这么慢）。
  */
-export function postedBox(root: THREE.Object3D): THREE.Box3 {
+export function postedBox(
+  root: THREE.Object3D,
+  opts: { excludeSoftCloth?: boolean } = {},
+): THREE.Box3 {
   root.updateWorldMatrix(true, true);
   const box = new THREE.Box3();
   const v = new THREE.Vector3();
@@ -219,8 +227,29 @@ export function postedBox(root: THREE.Object3D): THREE.Box3 {
     if (sm.isSkinnedMesh && typeof sm.getVertexPosition === "function") {
       const count = sm.geometry?.attributes?.position?.count ?? 0;
       if (count === 0) return;
+      const bones = sm.skeleton?.bones;
+      const skinIndex = sm.geometry?.attributes?.skinIndex;
+      const skinWeight = sm.geometry?.attributes?.skinWeight;
+      const soft =
+        opts.excludeSoftCloth && bones && skinIndex && skinWeight
+          ? { bones, skinIndex, skinWeight }
+          : null;
       const stride = Math.max(1, Math.floor(count / SAMPLES_PER_MESH));
       for (let i = 0; i < count; i += stride) {
+        if (soft) {
+          // 取该顶点权重最大的骨骼；裙摆/头发顶点整点跳过。
+          let best = 0;
+          let bestWeight = -1;
+          for (let k = 0; k < 4; k++) {
+            const w = soft.skinWeight.getComponent(i, k);
+            if (w > bestWeight) {
+              bestWeight = w;
+              best = k;
+            }
+          }
+          const bone = soft.bones[soft.skinIndex.getComponent(i, best)];
+          if (bone && SOFT_GROUND_BONE.test(bone.name)) continue;
+        }
         sm.getVertexPosition(i, v); // 已含蒙皮，落在网格局部坐标系
         box.expandByPoint(v.applyMatrix4(sm.matrixWorld));
       }

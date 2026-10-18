@@ -22,7 +22,11 @@
     "preview": "vite preview",
     "start": "node serve.mjs 5219 dist",
     "setup": "node scripts/install.mjs",
-    "check": "tsc --noEmit && vitest run"
+    "check": "tsc --noEmit && vitest run && npm run check:poses",
+    "analyze": "node tools/pose-analysis/analyze.mjs",
+    "analyze:presets": "node tools/pose-analysis/analyze.mjs --presets --model mikoto",
+    "check:poses": "node tools/pose-analysis/analyze.mjs --presets --model mikoto --strict --quiet",
+    "test:pose": "node --test tools/pose-analysis/analyze.selftest.mjs"
   },
   "dependencies": {
     "@types/three": "0.186.0",
