@@ -85,12 +85,12 @@ git tag v1.1.0 && git push origin v1.1.0
 
 ## 同步到小红书 SkillHub
 
-GitHub 是源码与安装源；小红书 SkillHub 是分发渠道。**每次 GitHub 发布后同步一次 SkillHub。**
+GitHub 是源码与安装源；小红书 SkillHub 是分发渠道。引导包如同桌面快捷方式：**日常 GitHub 更新不需要动它**，只有安装流程本身变了（clone 地址、install 步骤、平台限制、引导文案）才重发一次。
 
 SkillHub 上发的是**引导包** `skills/storyboard-hub/`（只有一个 `SKILL.md`，不含代码）：它指引 agent 从 GitHub clone 完整仓库并跑 `scripts/install.mjs`，装好后完整版 skill（本目录）会覆盖引导包。应用代码进不了 SkillHub 包——平台只收文本扩展名（`.md .txt .html .css .js .py .sh .json` 等，不允许 `.mjs`、图片、二进制），而仓库里是 `.ts` 源码和 `.glb/.pmx/.png` 模型资源。
 
 1. 先更新 GitHub 并 push。
-2. 递增**两处** frontmatter 的 `version`（`skills/storyboard/SKILL.md` 和 `skills/storyboard-hub/SKILL.md`，两处保持一致）。
+2. 重发时才递增**两处** frontmatter 的 `version`（`skills/storyboard/SKILL.md` 和 `skills/storyboard-hub/SKILL.md`，两处保持一致）；日常 GitHub 更新不动版本号。
 3. 打包：
    ```bash
    node scripts/pack-hub.mjs

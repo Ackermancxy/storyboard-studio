@@ -64,7 +64,7 @@ node scripts/install.mjs --skill-only
 
 给系统加功能、改 schema、加预设/道具/天气/导出之前，先读 `references/updating.md`：里面有扩展点地图、必须同步的清单、兼容性规则和发布流程。核心不变量：JSON 是唯一数据源；新增字段必须可选并有默认值；不重用旧 id；改完必须跑 `npm run check`、`npm run build`，并用样板跑一次校验。
 
-**小红书 SkillHub 同步**：SkillHub 上发的是 `skills/storyboard-hub/`（纯引导包，不含代码，指引 agent 从 GitHub 下载安装；本 skill 会在安装时覆盖它）。GitHub 更新后按 `references/updating.md` 的「同步到小红书 SkillHub」章节，用 `node scripts/pack-hub.mjs` 打包上传。每次发布先同步递增两处 frontmatter 的 `version`（本文件与 storyboard-hub，当前 1.1.0）。上传参数已固定：原创 + 标签「编程开发、内容创作」，用户已永久授权自动提交，不必逐次确认。注意 CLI publish 只能新建 skill，更新走网页控制台「更新版本」。
+**小红书 SkillHub 同步**：SkillHub 上发的是 `skills/storyboard-hub/`（纯引导包，不含代码，指引 agent 从 GitHub 下载安装；本 skill 会在安装时覆盖它）。GitHub 更新**不需要**重发 SkillHub——引导包只是指向 GitHub 的「桌面快捷方式」，文本长期不变；只有安装流程本身变了（clone 地址、install 步骤、平台限制）才按 `references/updating.md` 重发，重发时先同步递增两处 frontmatter 的 `version`（本文件与 storyboard-hub）。上传参数已固定：原创 + 标签「编程开发、内容创作」，用户已永久授权自动提交，不必逐次确认。注意 CLI publish 只能新建 skill，更新走网页控制台「更新版本」。
 
 ## 写法要点（容易错的）
 
